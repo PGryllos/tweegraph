@@ -19,7 +19,7 @@ class TwitterGraphTraverser():
         self.following = Queue.Queue()
         self.foundNodes = Queue.Queue()
         self.exploredNodes = {}
-        self.relationships = pd.DataFrame(columns=['nodeId', 'followerId'])
+        self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.dataLock = threading.Lock()
         self.foundNodes.put(central_id)
 
@@ -47,15 +47,14 @@ class TwitterGraphTraverser():
         Finding new nodes for exploration
         """
         while True:
-            follower, node = self.followers.get(True)
+            follower, node_1 = self.followers.get(True)
             self.followers.task_done()
-            self.relationships.loc[len(self.relationships)] = node, follower
-
-            node, friend = self.following.get(True)
+            node_2, friend = self.following.get(True)
             self.following.task_done()
             self.dataLock.acquire()
             try:
-                self.relationships.loc[len(self.relationships)] = friend, node
+                self.links.loc[len(self.links)] = node_1, follower
+                self.links.loc[len(self.links)] = friend, node_2
             finally:
                 self.dataLock.release()
 
@@ -64,14 +63,14 @@ class TwitterGraphTraverser():
 
     def exportData(self):
         """
-        Save relationships to file and clear dataframe
+        Save links to file and clear dataframe
         """
         self.dataLock.acquire()
         try:
-            self.relationships.to_csv(
-                    'relationships.csv', mode='a', index=False, sep=',')
-            self.relationships = self.relationships.drop(
-                                                self.relationships.index)
+            self.links['nodeId'] = self.links['nodeId'].astype(int)
+            self.links['followerId'] = self.links['followerId'].astype(int)
+            self.links.to_csv('links.csv', mode='a', index=False, sep=',')
+            self.links = self.links.drop(self.links.index)
         finally:
             self.dataLock.release()
 
@@ -81,7 +80,7 @@ class TwitterGraphTraverser():
         """
         self.dataLock.acquire()
         try:
-            return len(self.relationships)
+            return len(self.links)
         finally:
             self.dataLock.release()
 
