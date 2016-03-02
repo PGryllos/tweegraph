@@ -43,6 +43,7 @@ class TwitterGraphTraverser():
                 for friend in self.limitHandler(tweepy.Cursor(
                         self.api.friends_ids, id=node).items(self.breadth)):
                     self.following.put((node, friend))
+                sleep(5)
                 self.exploredNodes[node] = True
 
     def nodeFinder(self):
@@ -105,7 +106,7 @@ class TwitterGraphTraverser():
                 yield cursor.next()
             except tweepy.RateLimitError:
                 print 'Limit reached. stand by'
-                sleep(3*60)
+                sleep(15 * 60)
 
 
 if __name__ == "__main__":
