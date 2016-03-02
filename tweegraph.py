@@ -2,9 +2,7 @@ import tweepy
 import Queue
 import json
 import threading
-
 import pandas as pd
-
 from time import sleep
 
 
@@ -17,14 +15,12 @@ class TwitterGraphTraverser():
     def __init__(self, breadth=None, central_id=None, api=None):
         self.api = api
         self.breadth = breadth
-
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.foundNodes = Queue.Queue()
         self.exploredNodes = {}
         self.relationships = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.dataLock = threading.Lock()
-
         self.foundNodes.put(central_id)
 
     def graphExplorer(self):
