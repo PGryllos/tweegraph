@@ -6,6 +6,10 @@ import pandas as pd
 from time import sleep
 
 
+# TODO - make use a multiple access tokens for working around api limits
+# TODO - enable NetworkX or Giphy like functionality
+# TODO - add information to nodes
+
 class TwitterGraphTraverser():
     """
     TwitterGraphTraverser class. Implements traversing mechanism in breadth
