@@ -3,4 +3,4 @@ A python crawler that uses tweepy to provide an interface for farming twitter re
 
 
 Here is a snapshot of the collected network after an hour
-![alt text](https://github.com/PGryllos/tweegraph/blob/master/figures/figure_1.png)
+![alt text](https://raw.githubusercontent.com/PGryllos/tweegraph/master/figure_1.png)
