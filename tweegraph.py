@@ -1,10 +1,9 @@
 import tweepy
 import Queue
 import json
-import threading
 import pandas as pd
 from time import sleep
-
+from threading import Thread, Lock as thread_lock, current_thread
 
 # TODO - make use a multiple access tokens for working around api limits
 # TODO - enable NetworkX or Giphy like functionality
@@ -16,35 +15,53 @@ class TwitterGraphTraverser():
     first kind-of manner. The specified breadth will define the breadth that
     will be explored.
     """
-    def __init__(self, breadth=None, central_id=None, api=None):
-        self.api = api
+    def __init__(self, breadth=None, central_id=None, credentials=None):
+        self.credentials = credentials
         self.breadth = breadth
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.foundNodes = Queue.Queue()
         self.exploredNodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
-        self.dataLock = threading.Lock()
+        self.dataLock = thread_lock()
+        self.exploredLock = thread_lock()
         self.central_id = central_id
 
-    def graphExplorer(self):
+    def graphExplorer(self, tokens):
         """
         Exploring new nodes
         """
+        # authenticate worker
+        auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
+        auth.set_access_token(tokens['access'], tokens['access_secret'])
+
+        # create api instance
+        api = tweepy.API(auth)
         while True:
+            explore = True
+            followers = []
+            following = []
             node = self.foundNodes.get(True)
             self.foundNodes.task_done()
-
-            if node not in self.exploredNodes:
+            self.exploredLock.acquire()
+            try:
+                if node in self.exploredNodes:
+                    explore = False
+                else:
+                    self.exploredNodes[node] = True
+            finally:
+                self.exploredLock.release()
+            if explore:
                 for follower in self.limitHandler(tweepy.Cursor(
-                        self.api.followers_ids, id=node).items(self.breadth)):
-                    self.followers.put((follower, node))
+                        api.followers_ids, id=node).items(self.breadth)):
+                    followers.append((follower, node))
+                map(self.followers.put, followers)
                 sleep(5)
                 for friend in self.limitHandler(tweepy.Cursor(
-                        self.api.friends_ids, id=node).items(self.breadth)):
-                    self.following.put((node, friend))
+                        api.friends_ids, id=node).items(self.breadth)):
+                    following.append((node, friend))
+                map(self.following.put, following)
                 sleep(5)
-                self.exploredNodes[node] = True
 
     def nodeFinder(self):
         """
@@ -93,8 +110,9 @@ class TwitterGraphTraverser():
         """
         Initiates graph traversing
         """
-        threading.Thread(target=self.graphExplorer).start()
-        threading.Thread(target=self.nodeFinder).start()
+        Thread(target=self.nodeFinder).start()
+        for tokens in self.credentials:
+            Thread(target=self.graphExplorer, args=(tokens,)).start()
 
     def limitHandler(self, cursor):
         """
@@ -105,7 +123,7 @@ class TwitterGraphTraverser():
             try:
                 yield cursor.next()
             except tweepy.RateLimitError:
-                print 'Limit reached. stand by'
+                print 'Limit reached. Thread - ', current_thread()
                 sleep(15 * 60)
 
 
@@ -114,31 +132,18 @@ if __name__ == "__main__":
     with open('credentials.json') as credentials_file:
         credentials = json.load(credentials_file)
 
-    # get credentials from credentials.json
-    consumer_key = credentials['api_key']
-    consumer_secret = credentials['api_secret']
-    access_token = credentials['access_token']
-    access_token_secret = credentials['access_token_secret']
-
-    # authenticate
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-
-    # create api instance
-    tweeApi = tweepy.API(auth)
-
-    # the node that the search will start from
     starting_id = 18937701
 
     # create TwitterGraphTraverser instance
     traverser = TwitterGraphTraverser(breadth=400,
                                       central_id=starting_id,
-                                      api=tweeApi)
+                                      credentials=credentials)
     # start exploring graph
     traverser.start()
 
     while True:
-        if traverser.size() >= 2000:
+        if traverser.size() >= 500:
             traverser.exportData()
         else:
-            sleep(5)
+            print 'Relationships ready to be exported: ', traverser.size()
+            sleep(8)
