@@ -9,7 +9,8 @@ from threading import Thread, Lock as thread_lock, current_thread
 # TODO - enable NetworkX or Giphy like functionality
 # TODO - add information to nodes
 
-class TwitterGraphTraverser():
+
+class TwitterGraphTraverser:
     """
     TwitterGraphTraverser class. Implements traversing mechanism in breadth
     first kind-of manner. The specified breadth will define the breadth that
