@@ -25,7 +25,7 @@ class TwitterGraphTraverser():
         self.exploredNodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.dataLock = threading.Lock()
-        self.foundNodes.put(central_id)
+        self.central_id = central_id
 
     def graphExplorer(self):
         """
@@ -50,6 +50,7 @@ class TwitterGraphTraverser():
         """
         Finding new nodes for exploration
         """
+        self.foundNodes.put(self.central_id)
         while True:
             follower, node_1 = self.followers.get(True)
             self.followers.task_done()
