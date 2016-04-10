@@ -114,7 +114,8 @@ class TwitterGraphTraverser():
         for tokens in self.credentials:
             Thread(target=self.graphExplorer, args=(tokens,)).start()
 
-    def limitHandler(self, cursor):
+    @staticmethod
+    def limitHandler(cursor):
         """
         Generator that handles limit errors by pausing execution for some
         minutes
