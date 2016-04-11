@@ -16,9 +16,11 @@ class TwitterGraphTraverser:
     first kind-of manner. The specified breadth will define the breadth that
     will be explored.
     """
-    def __init__(self, breadth=None, central_id=None, credentials=None):
+    def __init__(self, central_id, credentials, breadth=250, graph_size=2000):
         self.credentials = credentials
         self.breadth = breadth
+        self.graph_size = graph_size
+        self.node_count = 0
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.foundNodes = Queue.Queue()
@@ -44,14 +46,19 @@ class TwitterGraphTraverser:
             following = []
             node = self.foundNodes.get(True)
             self.foundNodes.task_done()
+            # check if node is already explored
             self.exploredLock.acquire()
+            self.node_count += 2 * self.breadth
             try:
+                if self.node_count > self.graph_size:
+                    explore = False
                 if node in self.exploredNodes:
                     explore = False
                 else:
                     self.exploredNodes[node] = True
             finally:
                 self.exploredLock.release()
+            # explore node
             if explore:
                 for follower in self.limitHandler(tweepy.Cursor(
                         api.followers_ids, id=node).items(self.breadth)):
