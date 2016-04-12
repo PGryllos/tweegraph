@@ -49,7 +49,7 @@ class TwitterGraphTraverser:
             self.foundNodes.task_done()
             # check if node is already explored
             self.exploredLock.acquire()
-            self.node_count += 2 * self.breadth
+            self.node_count += self.breadth
             try:
                 if self.node_count > self.graph_size:
                     explore = False
@@ -63,12 +63,12 @@ class TwitterGraphTraverser:
             # explore node
             if explore:
                 for follower in self.limitHandler(tweepy.Cursor(
-                        api.followers_ids, id=node).items(self.breadth)):
+                        api.followers_ids, id=node).items(self.breadth / 2)):
                     followers.append((follower, node))
                 map(self.followers.put, followers)
                 sleep(5)
                 for friend in self.limitHandler(tweepy.Cursor(
-                        api.friends_ids, id=node).items(self.breadth)):
+                        api.friends_ids, id=node).items(self.breadth / 2)):
                     following.append((node, friend))
                 map(self.following.put, following)
                 sleep(5)
