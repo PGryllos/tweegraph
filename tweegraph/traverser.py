@@ -1,6 +1,5 @@
 import tweepy
 import Queue
-import json
 import pandas as pd
 from time import sleep
 from threading import Thread, Lock as thread_lock, current_thread
@@ -136,25 +135,3 @@ class TwitterGraphTraverser:
             except tweepy.RateLimitError:
                 print 'Limit reached. Thread - ', current_thread()
                 sleep(15 * 60)
-
-
-if __name__ == "__main__":
-
-    with open('credentials.json') as credentials_file:
-        credentials = json.load(credentials_file)
-
-    starting_id = 18937701
-
-    # create TwitterGraphTraverser instance
-    traverser = TwitterGraphTraverser(breadth=400,
-                                      central_id=starting_id,
-                                      credentials=credentials)
-    # start exploring graph
-    traverser.start()
-
-    while True:
-        if traverser.size() >= 500:
-            traverser.exportData()
-        else:
-            print 'Relationships ready to be exported: ', traverser.size()
-            sleep(8)
