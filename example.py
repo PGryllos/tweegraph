@@ -12,8 +12,9 @@ if __name__ == "__main__":
     starting_id = 18937701
 
     # create TwitterGraphTraverser instance
-    traverser = TwitterGraphTraverser(breadth=2,
+    traverser = TwitterGraphTraverser(breadth=20,
                                       graph_size=140,
+                                      db_name = 'twitter_user_timelines',
                                       central_id=starting_id,
                                       credentials=credentials)
     # start exploring graph

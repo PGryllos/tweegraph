@@ -1,51 +1,74 @@
+import json
 import tweepy
 import Queue
 import pandas as pd
 from time import sleep
 from threading import Thread, Lock as thread_lock, current_thread
+from pymongo import MongoClient
 
-# TODO - make use a multiple access tokens for working around api limits
-# TODO - enable NetworkX or Giphy like functionality
-# TODO - add information to nodes
+
+def request_handler(cursor):
+    """
+    handle requests. If limit reached halt for 15 min
+    """
+    while True:
+        try:
+            yield cursor.next()
+        except tweepy.RateLimitError:
+            print 'Limit reached. Thread - ', current_thread(), e
+            sleep(15 * 60)
+        except tweepy.TweepError as e:
+            print e
 
 
 class TwitterGraphTraverser:
     """
-    TwitterGraphTraverser class. Implements traversing mechanism in breadth
-    first kind-of manner. The specified breadth will define the breadth that
-    will be explored.
+    TwitterGraphTraverser class.
+
+    Implements traversing mechanism taking advantage of multiple api keys if
+    provided. At least two api keys needed. One for the retrieving user ids
+    and one for collecting user data.
+
+    The server is implemented by the nodeFinder method which is responsible
+    for adding new visited nodes for expansion.
+
+    The crawling process is being handed by graphExplorer workers while
+    retrievingUserData workes are responsible for collecting user data that
+    get stored using mongoDB.
     """
-    def __init__(self, central_id, credentials, breadth=250, graph_size=2000):
+    def __init__(self, central_id, credentials, db_name, breadth, graph_size):
         self.credentials = credentials
+        self.db = db_name
         self.breadth = breadth
         self.graph_size = graph_size
+        self.central_id = central_id
         self.node_count = 0
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.foundNodes = Queue.Queue()
+        self.exploredQueue = Queue.Queue()
         self.exploredNodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.users = pd.DataFrame(columns=['nodeId'])
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
-        self.central_id = central_id
 
     def graphExplorer(self, tokens):
         """
-        Exploring new nodes
+        visit node neighbours
         """
-        # authenticate worker
+        # authenticate worker and create api instance
         auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
         auth.set_access_token(tokens['access'], tokens['access_secret'])
-
-        # create api instance
         api = tweepy.API(auth)
+
         while True:
             explore = True
             followers = []
             following = []
             node = self.foundNodes.get(True)
             self.foundNodes.task_done()
+
             # check if node is already explored
             self.exploredLock.acquire()
             self.node_count += self.breadth
@@ -55,26 +78,56 @@ class TwitterGraphTraverser:
                 if node in self.exploredNodes:
                     explore = False
                 else:
-                    self.users.loc[len(self.users)] = node  # extend dataset
+                    self.users.loc[len(self.users)] = node
                     self.exploredNodes[node] = True
+                    self.exploredQueue.put(node)
             finally:
                 self.exploredLock.release()
-            # explore node
+
+            # retrieve x followers and x friends of the node. x = breadth / 2
             if explore:
-                for follower in self.limitHandler(tweepy.Cursor(
+                for follower in request_handler(tweepy.Cursor(
                         api.followers_ids, id=node).items(self.breadth / 2)):
                     followers.append((follower, node))
+
                 map(self.followers.put, followers)
+
                 sleep(5)
-                for friend in self.limitHandler(tweepy.Cursor(
+
+                for friend in request_handler(tweepy.Cursor(
                         api.friends_ids, id=node).items(self.breadth / 2)):
                     following.append((node, friend))
+
                 map(self.following.put, following)
+
                 sleep(5)
+
+    def retrieveUserData(self, tokens):
+        """
+        retrieve user data (timelines) and store them to the specified db
+        """
+        # authenticate worker and create api instance
+        auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
+        auth.set_access_token(tokens['access'], tokens['access_secret'])
+        api = tweepy.API(auth)
+
+        db_client = MongoClient()
+
+        while True:
+            tweets = []
+            node = self.exploredQueue.get(True)
+            self.exploredQueue.task_done()
+
+            for tweet in request_handler(tweepy.Cursor(
+                    api.user_timeline, id=node).items(10)):
+                tweets.append(tweet._json)
+
+            timelines = db_client[self.db].timelines
+            timelines.insert_one({'_id': node, 'content': tweets})
 
     def nodeFinder(self):
         """
-        Finding new nodes for exploration
+        find new nodes for exploration
         """
         self.foundNodes.put(self.central_id)
         while True:
@@ -94,7 +147,7 @@ class TwitterGraphTraverser:
 
     def exportData(self):
         """
-        Save links to file and clear dataframe
+        save links to file and clear dataframe
         """
         self.dataLock.acquire()
         try:
@@ -107,7 +160,7 @@ class TwitterGraphTraverser:
 
     def size(self):
         """
-        Returns the size of the data in a thread safe manner
+        return the size of the data in a thread safe manner
         """
         self.dataLock.acquire()
         try:
@@ -117,21 +170,11 @@ class TwitterGraphTraverser:
 
     def start(self):
         """
-        Initiates graph traversing
+        initiate graph traversing
         """
         Thread(target=self.nodeFinder).start()
-        for tokens in self.credentials:
+        for tokens in self.credentials[0:1]:
             Thread(target=self.graphExplorer, args=(tokens,)).start()
+        for tokens in self.credentials[1:3]:
+            Thread(target=self.retrieveUserData, args=(tokens,)).start()
 
-    @staticmethod
-    def limitHandler(cursor):
-        """
-        Generator that handles limit errors by pausing execution for some
-        minutes
-        """
-        while True:
-            try:
-                yield cursor.next()
-            except tweepy.RateLimitError:
-                print 'Limit reached. Thread - ', current_thread()
-                sleep(15 * 60)
