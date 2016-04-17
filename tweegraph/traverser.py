@@ -14,11 +14,12 @@ def request_handler(cursor):
     while True:
         try:
             yield cursor.next()
-        except tweepy.RateLimitError:
-            print 'Limit reached. Thread - ', current_thread(), e
-            sleep(15 * 60)
         except tweepy.TweepError as e:
-            print e
+            if e.response.status == 401:  # unauthorized request
+                print 'unauthorized request'
+            if e.response.status == 429:
+                print 'Limit reached. Thread - ', current_thread(), e
+                sleep(15 * 60)
 
 
 class TwitterGraphTraverser:
