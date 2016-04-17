@@ -1,13 +1,36 @@
 import json
 import tweepy
 import Queue
+import logging
 import pandas as pd
 from time import sleep
 from threading import Thread, Lock as thread_lock, current_thread
 from pymongo import MongoClient
 
 
-def request_handler(cursor):
+def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
+    """
+    logging module wrapper
+    """
+    logger = logging.getLogger(log_name)
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+            '[%(name)s - %(threadName)s - %(levelname)s] - %(message)s')
+    if console:  # add console handler
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+    if log_file:  # add file handler
+        fh = logging.FileHandler(file_name)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+    return logger
+
+
+def request_handler(cursor, logger):
     """
     handle requests. If limit reached halt for 15 min
     """
@@ -15,11 +38,12 @@ def request_handler(cursor):
         try:
             yield cursor.next()
         except tweepy.TweepError as e:
-            if e.response.status == 401:  # unauthorized request
-                print 'unauthorized request'
-            if e.response.status == 429:
-                print 'Limit reached. Thread - ', current_thread(), e
+            if 'code' in e.message[0] and e.message[0]['code'] == 88:
+                logger.info('Limit reached. Halting for 15 min')
                 sleep(15 * 60)
+            else:
+                logger.warning('Unauthorized request. Trying next request')
+                sleep(1)
 
 
 class TwitterGraphTraverser:
@@ -54,15 +78,19 @@ class TwitterGraphTraverser:
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
 
+        self.logger = log_wrap(log_name=self.__class__.__name__, console=True)
+
     def graphExplorer(self, tokens):
         """
         visit node neighbours
         """
+        logger = log_wrap(self.logger.name + '.graph_explorer')
         # authenticate worker and create api instance
         auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
         auth.set_access_token(tokens['access'], tokens['access_secret'])
         api = tweepy.API(auth)
 
+        logger.info('worker authenticated')
         while True:
             explore = True
             followers = []
@@ -88,7 +116,8 @@ class TwitterGraphTraverser:
             # retrieve x followers and x friends of the node. x = breadth / 2
             if explore:
                 for follower in request_handler(tweepy.Cursor(
-                        api.followers_ids, id=node).items(self.breadth / 2)):
+                        api.followers_ids, id=node).items(self.breadth / 2),
+                        logger):
                     followers.append((follower, node))
 
                 map(self.followers.put, followers)
@@ -96,7 +125,8 @@ class TwitterGraphTraverser:
                 sleep(5)
 
                 for friend in request_handler(tweepy.Cursor(
-                        api.friends_ids, id=node).items(self.breadth / 2)):
+                        api.friends_ids, id=node).items(self.breadth / 2),
+                        logger):
                     following.append((node, friend))
 
                 map(self.following.put, following)
@@ -107,6 +137,7 @@ class TwitterGraphTraverser:
         """
         retrieve user data (timelines) and store them to the specified db
         """
+        logger = log_wrap(self.logger.name + '.data_retriever')
         # authenticate worker and create api instance
         auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
         auth.set_access_token(tokens['access'], tokens['access_secret'])
@@ -114,13 +145,15 @@ class TwitterGraphTraverser:
 
         db_client = MongoClient()
 
+        logger.info('worker authenticated')
+
         while True:
             tweets = []
             node = self.exploredQueue.get(True)
             self.exploredQueue.task_done()
 
             for tweet in request_handler(tweepy.Cursor(
-                    api.user_timeline, id=node).items(10)):
+                    api.user_timeline, id=node).items(200), logger):
                 tweets.append(tweet._json)
 
             timelines = db_client[self.db].timelines
