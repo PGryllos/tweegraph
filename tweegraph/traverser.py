@@ -42,8 +42,8 @@ def request_handler(cursor, logger):
                 logger.info('Limit reached. Halting for 15 min')
                 sleep(15 * 60)
             else:
-                logger.warning('Unauthorized request. Trying next request')
-                sleep(1)
+                logger.warning(e)
+                yield None
 
 
 class TwitterGraphTraverser:
@@ -116,12 +116,16 @@ class TwitterGraphTraverser:
                 for follower in request_handler(tweepy.Cursor(
                         api.followers_ids, id=node).items(self.breadth / 2),
                         logger):
+                    if not follower:  # in case node is has set privacy on
+                        explore = False
+                        break
                     followers.append((follower, node))
 
                 map(self.followers.put, followers)
 
                 sleep(5)
 
+            if explore:
                 for friend in request_handler(tweepy.Cursor(
                         api.friends_ids, id=node).items(self.breadth / 2),
                         logger):
@@ -142,6 +146,7 @@ class TwitterGraphTraverser:
         api = tweepy.API(auth)
 
         db_client = MongoClient()
+        timelines = db_client[self.db].timelines
 
         logger.info('worker authenticated')
 
@@ -152,10 +157,13 @@ class TwitterGraphTraverser:
 
             for tweet in request_handler(tweepy.Cursor(
                     api.user_timeline, id=node).items(200), logger):
-                tweets.append(tweet._json)
+                if tweet:
+                    tweets.append(tweet._json)
+                else:
+                    break
 
-            timelines = db_client[self.db].timelines
-            timelines.insert_one({'_id': node, 'content': tweets})
+            if not all(tweet is None for tweet in tweets):
+                timelines.insert_one({'_id': node, 'content': tweets})
 
     def nodeFinder(self):
         """
