@@ -61,9 +61,8 @@ class TwitterGraphTraverser:
     retrievingUserData workes are responsible for collecting user data that
     get stored using mongoDB.
     """
-    def __init__(self, central_id, credentials, db_name, breadth, graph_size):
+    def __init__(self, central_id, credentials, breadth, graph_size):
         self.credentials = credentials
-        self.db = db_name
         self.breadth = breadth
         self.graph_size = graph_size
         self.central_id = central_id
@@ -71,7 +70,6 @@ class TwitterGraphTraverser:
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.found_nodes = Queue.Queue()
-        self.explored_queue = Queue.Queue()
         self.explored_nodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.dataLock = thread_lock()
@@ -107,7 +105,6 @@ class TwitterGraphTraverser:
                     explore = False
                 else:
                     self.explored_nodes[node] = True
-                    self.explored_queue.put(node)
             finally:
                 self.exploredLock.release()
 
@@ -134,36 +131,6 @@ class TwitterGraphTraverser:
                 map(self.following.put, following)
 
                 sleep(5)
-
-    def retrieveUserData(self, tokens):
-        """
-        retrieve user data (timelines) and store them to the specified db
-        """
-        logger = log_wrap(self.logger.name + '.data_retriever')
-        # authenticate worker and create api instance
-        auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
-        auth.set_access_token(tokens['access'], tokens['access_secret'])
-        api = tweepy.API(auth)
-
-        db_client = MongoClient()
-        timelines = db_client[self.db].timelines
-
-        logger.info('worker authenticated')
-
-        while True:
-            tweets = []
-            node = self.explored_queue.get(True)
-            self.explored_queue.task_done()
-
-            for tweet in request_handler(tweepy.Cursor(
-                    api.user_timeline, id=node).items(200), logger):
-                if tweet:
-                    tweets.append(tweet._json)
-                else:
-                    break
-
-            if not all(tweet is None for tweet in tweets):
-                timelines.insert_one({'_id': node, 'content': tweets})
 
     def nodeFinder(self):
         """
@@ -210,9 +177,8 @@ class TwitterGraphTraverser:
         """
         initiate graph traversing
         """
+        # start node finder
         Thread(target=self.nodeFinder).start()
-        for tokens in self.credentials[0:1]:
+        # start as many crawlers as api keys
+        for tokens in self.credentials:
             Thread(target=self.graphExplorer, args=(tokens,)).start()
-        for tokens in self.credentials[1:3]:
-            Thread(target=self.retrieveUserData, args=(tokens,)).start()
-
