@@ -74,7 +74,6 @@ class TwitterGraphTraverser:
         self.exploredQueue = Queue.Queue()
         self.exploredNodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
-        self.users = pd.DataFrame(columns=['nodeId'])
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
 
@@ -107,7 +106,6 @@ class TwitterGraphTraverser:
                 if node in self.exploredNodes:
                     explore = False
                 else:
-                    self.users.loc[len(self.users)] = node
                     self.exploredNodes[node] = True
                     self.exploredQueue.put(node)
             finally:
@@ -186,9 +184,7 @@ class TwitterGraphTraverser:
         self.dataLock.acquire()
         try:
             self.links = self.links.astype(int)
-            self.users = self.users.astype(int)
             self.links.to_csv('links.csv', index=False, sep=',', header=False)
-            self.users.to_csv('users.csv', index=False, sep=',', header=False)
         finally:
             self.dataLock.release()
 
