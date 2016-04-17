@@ -70,9 +70,9 @@ class TwitterGraphTraverser:
         self.node_count = 0
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
-        self.foundNodes = Queue.Queue()
-        self.exploredQueue = Queue.Queue()
-        self.exploredNodes = {}
+        self.found_nodes = Queue.Queue()
+        self.explored_queue = Queue.Queue()
+        self.explored_nodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
@@ -94,8 +94,8 @@ class TwitterGraphTraverser:
             explore = True
             followers = []
             following = []
-            node = self.foundNodes.get(True)
-            self.foundNodes.task_done()
+            node = self.found_nodes.get(True)
+            self.found_nodes.task_done()
 
             # check if node is already explored
             self.exploredLock.acquire()
@@ -103,11 +103,11 @@ class TwitterGraphTraverser:
             try:
                 if self.node_count > self.graph_size:
                     explore = False
-                if node in self.exploredNodes:
+                if node in self.explored_nodes:
                     explore = False
                 else:
-                    self.exploredNodes[node] = True
-                    self.exploredQueue.put(node)
+                    self.explored_nodes[node] = True
+                    self.explored_queue.put(node)
             finally:
                 self.exploredLock.release()
 
@@ -152,8 +152,8 @@ class TwitterGraphTraverser:
 
         while True:
             tweets = []
-            node = self.exploredQueue.get(True)
-            self.exploredQueue.task_done()
+            node = self.explored_queue.get(True)
+            self.explored_queue.task_done()
 
             for tweet in request_handler(tweepy.Cursor(
                     api.user_timeline, id=node).items(200), logger):
@@ -169,7 +169,7 @@ class TwitterGraphTraverser:
         """
         find new nodes for exploration
         """
-        self.foundNodes.put(self.central_id)
+        self.found_nodes.put(self.central_id)
         while True:
             follower, node_1 = self.followers.get(True)
             self.followers.task_done()
@@ -182,8 +182,8 @@ class TwitterGraphTraverser:
             finally:
                 self.dataLock.release()
 
-            self.foundNodes.put(follower)
-            self.foundNodes.put(friend)
+            self.found_nodes.put(follower)
+            self.found_nodes.put(friend)
 
     def exportData(self):
         """
