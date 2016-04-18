@@ -106,27 +106,18 @@ class TwitterGraphTraverser:
 
             # retrieve x followers and x friends of the node. x = breadth / 2
             if explore:
-                for follower in request_handler(tweepy.Cursor(
-                        api.followers_ids, id=node).items(self.breadth / 2),
-                        logger):
-                    if not follower:  # in case node is has set privacy on
-                        explore = False
-                        break
-                    followers.append((follower, node))
-
-                map(self.followers.put, followers)
-
-                sleep(5)
-
-            if explore:
-                for friend in request_handler(tweepy.Cursor(
-                        api.friends_ids, id=node).items(self.breadth / 2),
-                        logger):
-                    following.append((node, friend))
-
-                map(self.following.put, following)
-
-                sleep(5)
+                followers = request_data(api.followers_ids, node,
+                                         self.breadth/2, logger)
+            # avoid requests in case node is has set privacy on
+            if followers:
+                for follower in followers:
+                    self.followers.put((follower, node))
+                sleep(1)
+                following = request_data(api.friends_ids, node,
+                                         self.breadth/2, logger)
+                for friend in following:
+                    self.following.put((node, friend))
+                sleep(1)
 
             # termination condition
             if self.size() >= self.graph_size:
