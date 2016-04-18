@@ -30,6 +30,13 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
     return logger
 
 
+def create_api_instance(tokens):
+    auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
+    auth.set_access_token(tokens['access'], tokens['access_secret'])
+    api = tweepy.API(auth)
+    return api
+
+
 def request_handler(cursor, logger):
     """
     handle requests. If limit reached halt for 15 min
@@ -81,12 +88,10 @@ class TwitterGraphTraverser:
         visit node neighbours
         """
         logger = log_wrap(self.logger.name + '.graph_explorer')
-        # authenticate worker and create api instance
-        auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
-        auth.set_access_token(tokens['access'], tokens['access_secret'])
-        api = tweepy.API(auth)
 
+        api = create_api_instance(tokens)
         logger.info('worker authenticated')
+
         while True:
             explore = True
             followers = []
