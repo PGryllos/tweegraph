@@ -61,12 +61,11 @@ class TwitterGraphTraverser:
     retrievingUserData workes are responsible for collecting user data that
     get stored using mongoDB.
     """
-    def __init__(self, central_id, credentials, breadth, graph_size):
+    def __init__(self, starting_ids, credentials, breadth, graph_size):
         self.credentials = credentials
         self.breadth = breadth
         self.graph_size = graph_size
-        self.central_id = central_id
-        self.node_count = 0
+        self.starting_ids = starting_ids
         self.followers = Queue.Queue()
         self.following = Queue.Queue()
         self.found_nodes = Queue.Queue()
@@ -132,11 +131,18 @@ class TwitterGraphTraverser:
 
                 sleep(5)
 
+            # termination condition
+            if self.size() >= self.graph_size:
+                logger.info('terminating')
+                return
+
     def nodeFinder(self):
         """
         find new nodes for exploration
         """
-        self.found_nodes.put(self.central_id)
+        for node in self.starting_ids:
+            self.found_nodes.put(node)
+
         while True:
             follower, node_1 = self.followers.get(True)
             self.followers.task_done()
