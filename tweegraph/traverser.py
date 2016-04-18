@@ -96,10 +96,7 @@ class TwitterGraphTraverser:
 
             # check if node is already explored
             self.exploredLock.acquire()
-            self.node_count += self.breadth
             try:
-                if self.node_count > self.graph_size:
-                    explore = False
                 if node in self.explored_nodes:
                     explore = False
                 else:
