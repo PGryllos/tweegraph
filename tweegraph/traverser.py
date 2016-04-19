@@ -34,16 +34,12 @@ class TwitterGraphTraverser:
     """
     TwitterGraphTraverser class.
 
-    Implements traversing mechanism taking advantage of multiple api keys if
-    provided. At least two api keys needed. One for the retrieving user ids
-    and one for collecting user data.
+    Implements traversing mechanism, in a fixed-breadth manner, taking
+    advantage of multiple api keys if provided.
 
-    The server is implemented by the nodeFinder method which is responsible
-    for adding new visited nodes for expansion.
-
-    The crawling process is being handed by graphExplorer workers while
-    retrievingUserData workes are responsible for collecting user data that
-    get stored using mongoDB.
+    The server is implemented by find_nodes() which is responsible for adding
+    new visited nodes for expansion. The crawling process is being handed by
+    explore_graph() workers.
     """
     def __init__(self, starting_ids, credentials, breadth, graph_size):
         self.credentials = credentials
@@ -60,10 +56,7 @@ class TwitterGraphTraverser:
 
         self.logger = log_wrap(log_name=self.__class__.__name__, console=True)
 
-    def graphExplorer(self, tokens):
-        """
-        visit node neighbours
-        """
+    def explore_graph(self, tokens):
         logger = log_wrap(self.logger.name + '.graph_explorer')
 
         api = create_api_instance(tokens)
@@ -106,7 +99,7 @@ class TwitterGraphTraverser:
                 logger.info('terminating')
                 return
 
-    def nodeFinder(self):
+    def find_nodes(self):
         """
         find new nodes for exploration
         """
@@ -154,7 +147,7 @@ class TwitterGraphTraverser:
         initiate graph traversing
         """
         # start node finder
-        Thread(target=self.nodeFinder).start()
+        Thread(target=self.find_nodes).start()
         # start as many crawlers as api keys
         for tokens in self.credentials:
-            Thread(target=self.graphExplorer, args=(tokens,)).start()
+            Thread(target=self.explore_graph, args=(tokens,)).start()
