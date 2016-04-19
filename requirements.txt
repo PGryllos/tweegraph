@@ -1,3 +1,4 @@
 tweepy==3.5.0
 networkx==1.11
 pandas==0.17.1
+pymongo==3.2.2
