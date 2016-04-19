@@ -1,11 +1,11 @@
 import json
-import tweepy
 import Queue
 import logging
 import pandas as pd
 from time import sleep
-from threading import Thread, Lock as thread_lock, current_thread
-from pymongo import MongoClient
+
+from threading import Thread, Lock as thread_lock
+from tweegraph.api import create_api_instance, request_data
 
 
 def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
@@ -28,29 +28,6 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
         fh.setFormatter(formatter)
         logger.addHandler(fh)
     return logger
-
-
-def create_api_instance(tokens):
-    auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
-    auth.set_access_token(tokens['access'], tokens['access_secret'])
-    api = tweepy.API(auth)
-    return api
-
-
-def request_handler(cursor, logger):
-    """
-    handle requests. If limit reached halt for 15 min
-    """
-    while True:
-        try:
-            yield cursor.next()
-        except tweepy.TweepError as e:
-            if 'code' in e.message[0] and e.message[0]['code'] == 88:
-                logger.info('Limit reached. Halting for 15 min')
-                sleep(15 * 60)
-            else:
-                logger.warning(e)
-                yield None
 
 
 class TwitterGraphTraverser:
