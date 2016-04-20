@@ -21,6 +21,7 @@ def request_handler(cursor, logger):
                     str(e.response) == '<Response [429]>':
                 logger.info('Limit reached. Halting for 15 min')
                 sleep(15 * 60)
+                logger.info('Worker is active again')
             else:
                 logger.warning(e.response)
                 yield None
