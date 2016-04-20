@@ -23,6 +23,7 @@ def store_timelines(tokens, collection, amount, user_list, worker_id):
 
     for user in user_list:
         timeline = request_data(api.user_timeline, user, amount, logger)
+        sleep(1)
         if timeline:
             timeline = [status._json for status in timeline]
             collection.insert_one({'_id': user, 'content': timeline})
