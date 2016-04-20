@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # create TwitterGraphTraverser instance
     traverser = TwitterGraphTraverser(breadth=600,
                                       graph_size=30000,
-                                      starting_ids=starting_id,
+                                      starting_ids=starting_ids,
                                       credentials=credentials)
     # start exploring graph
     traverser.start()
