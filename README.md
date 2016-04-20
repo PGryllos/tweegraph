@@ -74,11 +74,11 @@ For the `collect_timelines.py` script I have used `MongoDB` to store the results
 
 
 #### LICENSE & CONTRIBUTIONS
-I haven't yet added a LICENSE to the project but have in mind that the code comes with ABSOLUTELY NO WARRANTY. I have been using the crawler as a tool for my diploma dissertation and I would be more than happy if it could be usefull to other people or reasearch groups too. Feel free to contact me or open an issue for feedback, possible extension or problems.  
+I haven't yet added a LICENSE to the project but have in mind that the code comes with ABSOLUTELY NO WARRANTY. I have been using the crawler as a tool for my diploma dissertation and I would be more than happy if it could be usefull to other people or reasearch groups. Feel free to contact me or open an issue for feedback, possible extensions or problems.  
 
 ---
 
 ####author
-Gryllos Prokopis (gryllosprokopis@gmail.com)
+Gryllos Prokopios (gryllosprokopis@gmail.com)
 
 
