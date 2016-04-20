@@ -2,7 +2,8 @@
 
 __tweegraph__ is a collection of functions, a class and some scripts that use tweepy to provide an interface for crawling twitter relationships. Aimed for small research tasks that involve either the studying of topological traits of a network (sub-graphs of twitter) and that can involve up to some hundreds of thousands of ids (i.e crawling ~100000 ids with 5 api keys can be done in under an hour) or / and user data (collecting 2gb of timeline data takes me usually 5-6 hours).
 
-Can be used from small research groups that cannot afford the money and / or time for setting up large clusters for distributed crawling on aws or azure and want to easily set up a crawling procedure. The crawler takes advantage of multiple api tokens, if provided, but also works with one. Adding more than one obviously speeds up the crawling significantly. 
+Can be used from small research groups that cannot afford the money and / or time for setting up large clusters for distributed crawling on aws or azure and want to easily set up a crawling procedure. The crawler takes advantage of multiple api tokens, if provided, but also works with one. Adding more than one obviously speeds up the crawling significantly.
+
 
 #### requirements
 For running the crawling of user ids you need `tweepy` and `pandas`. For crawling timelines you also need `MongoDB` with `pymongo`. If you want to use the `plot_graph.py` script to visually plot the collected graph you additionally need `networkx`. If you want all the above just `pip install -r requirements`, then install `MongoDb` and you will be up to date with everything that the project uses. 
@@ -10,7 +11,7 @@ For running the crawling of user ids you need `tweepy` and `pandas`. For crawlin
 
 #### traversing algorithm
 The graph searching algorithm is a fixed BFS. Fixed means that you have to provide a specific
-breadth up to which the neighbors of a node will be discovered. This helps with discovering larger parts of the network and the crawling not being stuck in nodes with extremely high in-out degree (e.g. The crawler would spend more than 9 days to collect all the followers of Kanye West and it would end up creating an single asterisk instead of a highly interconnected network whose properties can be studied).
+breadth up to which the neighbors of a node will be discovered. This helps with discovering larger parts of the network and the crawling not being stuck in nodes with extremely high in-out degree (e.g. The crawler would spend more than 9 days to collect all the followers of Kanye West and it would end up creating an single asterisk instead of a highly interconnected network whose properties can be studied). 
 
 
 #### initial seed
@@ -22,8 +23,7 @@ The crawler is fault taulerant. You can initiate a crawling and leave it run for
 
 
 #### implementation details
-The graph traversing mechanism is implemented in `/tweegraph/traverser.py` by the `TwitterGraphTraverser` class which provides an interface for using the mechanism. All connection are stored into `links.csv` in the form (follwer, node).
-The `collect_graph.py` script showcases how the crawler can be used for collecting user relations and `collect_timelines.py` uses the `links.csv` as a seed for starting multiple crawling of timeline data of the unique nodes in the file.
+The graph traversing mechanism is implemented in `/tweegraph/traverser.py` by the `TwitterGraphTraverser` class which provides an interface for using the mechanism. All connection are stored into `links.csv` in the form (follwer, node). That also means that the crawler treats the network as a __directed__ graph. The `collect_graph.py` script showcases how the crawler can be used for collecting user relations and `collect_timelines.py` uses the `links.csv` as a seed for starting multiple crawling of timeline data of the unique nodes in the file.
 
 
 #### example
