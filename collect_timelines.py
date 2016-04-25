@@ -1,18 +1,14 @@
 import json
-import pandas as pd
 
 from threading import Thread
 from pymongo import MongoClient
 from time import sleep
+from argparse import ArgumentParser
+
 from tweegraph.api import create_api_instance, request_data
 from tweegraph.traverser import log_wrap
-
-
-def get_number_of_users(collection):
-    users = []
-    for user in collection.find():
-        users.append(user)
-    return len(users)
+from tweegraph.data import unique_nodes
+from tweegraph.db import get_number_of_users
 
 
 def store_timelines(tokens, collection, amount, user_list, worker_id):
@@ -30,22 +26,28 @@ def store_timelines(tokens, collection, amount, user_list, worker_id):
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser(description='collect_timelines')
 
-    db_name = 'Twitter_users'
-    collection_name = 'timelines'
-    amount = 400
+    parser.add_argument('input_file',
+                        metavar='input_file', type=str,
+                        help='csv file that describes edges of the graph')
+    parser.add_argument('-d', '--db_name', dest='db', type=str,
+                        default='twitter_users')
+    parser.add_argument('-c', '--collection_name', dest='col', type=str,
+                        default='timelines')
+    args = parser.parse_args()
+    file_name = args.input_file
+
+    db_name = args.db
+    collection_name = args.col
+    amount = 400  # amount of statuses to collect from each user
 
     logger = log_wrap('retrieve_timelines', console=True)
 
     with open('credentials.json') as credentials_file:
         credentials = json.load(credentials_file)
 
-    nodes = pd.read_csv('links.csv', names=['node1', 'node2'])
-
-    # keep unique nodes
-    nodes = pd.concat([nodes['node1'], nodes['node2']])
-    nodes = nodes.drop_duplicates()
-    nodes = list(nodes)
+    nodes = unique_nodes(file_name)
 
     db_client = MongoClient()
     timelines = db_client[db_name][collection_name]
