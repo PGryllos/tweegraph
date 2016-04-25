@@ -11,7 +11,7 @@ For running the crawling of user ids you need `tweepy` and `pandas`. For crawlin
 
 #### traversing algorithm
 The graph searching algorithm is a fixed BFS. Fixed means that you have to provide a specific
-breadth up to which the neighbors of a node will be discovered. This helps with discovering larger parts of the network and the crawling not being stuck in nodes with extremely high in-out degree (e.g. The crawler would spend more than 9 days to collect all the followers of Kanye West and it would end up creating an single asterisk instead of a highly interconnected network whose properties can be studied). 
+breadth up to which the neighbors of a node will be discovered. This helps with discovering larger parts of the network faster and the crawling not being stuck in nodes with extremely high in-out degree (e.g. The crawler would spend more than 9 days to collect all the followers of Kanye West and it would end up creating an single asterisk instead of a highly interconnected network whose properties can be studied). 
 
 
 #### initial seed
