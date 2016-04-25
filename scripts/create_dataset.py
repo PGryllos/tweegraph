@@ -1,5 +1,4 @@
 # create dataset from edges file
-import numpy as np
 from argparse import ArgumentParser
 from itertools import combinations
 import pandas as pd
