@@ -27,11 +27,19 @@ def request_handler(cursor, logger):
                 yield None
 
 
-def request_data(query, node, amount, logger):
-    items = []
+def request_data(query, node, size, logger):
+    data = []
     handler = request_handler
-    for item in handler(tweepy.Cursor(query, id=node).items(amount), logger):
-        if not item:
-            return None
-        items.append(item)
-    return items
+    if not size:
+        for page in handler(tweepy.Cursor(query, id=node).pages(), logger):
+            if not page:
+                return None
+            data.extend(page)
+            sleep(10)
+    else:
+        for item in handler(tweepy.Cursor(query, id=node).items(size), logger):
+            if not item:
+                return None
+            data.append(item)
+            sleep(10)
+    return data

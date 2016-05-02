@@ -80,6 +80,11 @@ class TwitterGraphTraverser:
             finally:
                 self.exploredLock.release()
 
+            # termination condition
+            if self.size() >= self.graph_size:
+                logger.info('terminating')
+                return
+
             # retrieve x followers of the node. x = breadth
             if explore and 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
@@ -91,7 +96,6 @@ class TwitterGraphTraverser:
 
                 for follower in followers:
                     self.connections.put((follower, node))
-                sleep(1)
 
             # retrieve x friends of the node. x = breadth
             if explore and 'following' in self.directions:
@@ -100,12 +104,6 @@ class TwitterGraphTraverser:
 
                 for friend in following:
                     self.connections.put((node, friend))
-                sleep(1)
-
-            # termination condition
-            if self.size() >= self.graph_size:
-                logger.info('terminating')
-                return
 
     def find_nodes(self):
         """

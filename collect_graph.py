@@ -19,7 +19,7 @@ if __name__ == "__main__":
                     2292454922]  # tsipras_eu
 
     # create TwitterGraphTraverser instance
-    traverser = TwitterGraphTraverser(breadth=400,
+    traverser = TwitterGraphTraverser(breadth=None,
                                       graph_size=2500,
                                       starting_ids=starting_ids,
                                       directions=['following'],
