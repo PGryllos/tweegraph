@@ -41,13 +41,14 @@ class TwitterGraphTraverser:
     new visited nodes for expansion. The crawling process is being handed by
     explore_graph() workers.
     """
-    def __init__(self, starting_ids, credentials, breadth, graph_size):
+    def __init__(self, starting_ids, credentials, breadth, graph_size,
+                 directions=['followers', 'following']):
         self.credentials = credentials
         self.breadth = breadth
         self.graph_size = graph_size
+        self.directions = directions
         self.starting_ids = starting_ids
-        self.followers = Queue.Queue()
-        self.following = Queue.Queue()
+        self.connections = Queue.Queue()
         self.found_nodes = Queue.Queue()
         self.explored_nodes = {}
         self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
@@ -79,19 +80,26 @@ class TwitterGraphTraverser:
             finally:
                 self.exploredLock.release()
 
-            # retrieve x followers and x friends of the node. x = breadth / 2
-            if explore:
+            # retrieve x followers of the node. x = breadth
+            if explore and 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
-                                         self.breadth/2, logger)
-            # avoid requests in case node is has set privacy on
-            if followers:
+                                         self.breadth, logger)
+
+                # avoid spending requests in case node has set privacy on
+                if not followers:
+                    continue
+
                 for follower in followers:
-                    self.followers.put((follower, node))
+                    self.connections.put((follower, node))
                 sleep(1)
+
+            # retrieve x friends of the node. x = breadth
+            if explore and 'following' in self.directions:
                 following = request_data(api.friends_ids, node,
-                                         self.breadth/2, logger)
+                                         self.breadth, logger)
+
                 for friend in following:
-                    self.following.put((node, friend))
+                    self.connections.put((node, friend))
                 sleep(1)
 
             # termination condition
@@ -107,19 +115,16 @@ class TwitterGraphTraverser:
             self.found_nodes.put(node)
 
         while True:
-            follower, node_1 = self.followers.get(True)
-            self.followers.task_done()
-            node_2, friend = self.following.get(True)
-            self.following.task_done()
+            follower, node = self.connections.get(True)
+            self.connections.task_done()
             self.dataLock.acquire()
             try:
-                self.links.loc[len(self.links)] = node_1, follower
-                self.links.loc[len(self.links)] = friend, node_2
+                self.links.loc[len(self.links)] = follower, node
             finally:
                 self.dataLock.release()
 
             self.found_nodes.put(follower)
-            self.found_nodes.put(friend)
+            self.found_nodes.put(node)
 
     def exportData(self):
         """
