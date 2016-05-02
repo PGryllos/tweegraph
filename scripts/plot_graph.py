@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     graph = nx.Graph()
     # add nodes and edges
-    graph.add_edges_from(list(np.asarray(links.loc[1:, :])))
+    graph.add_edges_from(np.asarray(links))
 
     nx.draw(graph)
     plt.show()
