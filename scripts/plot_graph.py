@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     links = pd.read_csv(file_name, names=['follower', 'node'])
 
-    graph = nx.Graph()
+    graph = nx.DiGraph()
     # add nodes and edges
     graph.add_edges_from(np.asarray(links))
 
