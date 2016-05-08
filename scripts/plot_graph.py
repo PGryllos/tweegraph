@@ -12,12 +12,19 @@ if __name__ == '__main__':
                         metavar='input_file', type=str,
                         help='csv file that describes edges of the graph')
 
+    parser.add_argument('-d', '--directed', dest='directed', type=bool, default=False,
+                        help='set to True for directed edges')
+
     args = parser.parse_args()
     file_name = args.input_file
+    directed = args.directed
 
     links = pd.read_csv(file_name, names=['follower', 'node'])
 
-    graph = nx.DiGraph()
+    if directed:
+        graph = nx.DiGraph()
+    else:
+        graph = nx.Graph()
     # add nodes and edges
     graph.add_edges_from(np.asarray(links))
 
