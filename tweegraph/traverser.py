@@ -11,11 +11,29 @@ from tweegraph.api import create_api_instance, request_data
 def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
     """
     logging module wrapper
+
+    Parameters
+    ----------
+
+    log_name  : str
+        name to use for creating logger
+    console   : bool
+        logging to console
+    log_file  : bool
+        logging to specified log file
+    file_name : str
+        name of the file to use for logging if log_file is set to True
+
+    Returns
+    -------
+
+    logger : logger object
     """
     logger = logging.getLogger(log_name)
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-            '[%(name)s - %(threadName)s - %(levelname)s] - %(message)s')
+            '[%(asctime)s - %(name)s - %(threadName)s - '
+            '%(levelname)s] - %(message)s')
     if console:  # add console handler
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
