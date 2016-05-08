@@ -89,11 +89,9 @@ class TwitterGraphTraverser:
             if explore and 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
                                          self.breadth, logger)
-
                 # avoid spending requests in case node has set privacy on
                 if not followers:
                     continue
-
                 for follower in followers:
                     self.connections.put((follower, node))
 
@@ -101,7 +99,8 @@ class TwitterGraphTraverser:
             if explore and 'following' in self.directions:
                 following = request_data(api.friends_ids, node,
                                          self.breadth, logger)
-
+                if not following:
+                    continue
                 for friend in following:
                     self.connections.put((node, friend))
 
