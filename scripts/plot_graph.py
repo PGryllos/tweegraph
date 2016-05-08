@@ -28,5 +28,5 @@ if __name__ == '__main__':
     # add nodes and edges
     graph.add_edges_from(np.asarray(links))
 
-    nx.draw(graph)
+    nx.draw(graph, with_labels = True)
     plt.show()
