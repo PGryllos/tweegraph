@@ -58,5 +58,3 @@ if __name__ == '__main__':
     print data_set
 
     data_set.to_csv('topological_features.csv', index=False)
-
-
