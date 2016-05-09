@@ -41,8 +41,9 @@ if __name__ == "__main__":
     edges['label'] = 1
     edges = edges.set_index(['id_1', 'id_2']).to_dict()['label']
 
-    data_set = pd.DataFrame(columns=['pair_id', 'friends'])
+    data_set = pd.DataFrame(columns=['id_1', 'id_2', 'friends'])
     data_set['pair_id'] = map(lambda x: get_pair_id(x[0], x[1]), pairs)
     data_set['friends'] = map(lambda x: get_pair_labels(x[0], x[1]), pairs)
 
-    data_set.to_csv('labeled_pairs.csv', names=True, index=False)
+    data_set.to_csv('labeled_pairs.csv', names=True, index=False,
+                    columns=['pair_id', 'friends'])
