@@ -50,18 +50,19 @@ if __name__ == "__main__":
                     31927467,    # pitbull
                     2292454922]  # tsipras_eu
 
-    # create TwitterGraphTraverser instance
-    traverser = TwitterGraphTraverser(breadth=600,
-                                      graph_size=30000,
+    # create TwitterGraphTraverser instance.
+    traverser = TwitterGraphTraverser(breadth=None,
+                                      graph_size=2500,
                                       starting_ids=starting_ids,
+                                      directions=['following'],
                                       credentials=credentials)
     # start exploring graph
     traverser.start()
-    
-    # export collected relations to a file every five sec
+
+    # export collected relations to file every 5 sec
     while True:
-        if traverser.size() > 0:
-            traverser.exportData()
+        if traverser.get_size() > 0:
+            traverser.export_data()
             sleep(5)
 
 ```
