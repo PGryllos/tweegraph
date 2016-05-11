@@ -143,7 +143,7 @@ class TwitterGraphTraverser:
             self.found_nodes.put(follower)
             self.found_nodes.put(node)
 
-    def exportData(self):
+    def export_data(self):
         """
         save links to file
         """
@@ -153,7 +153,7 @@ class TwitterGraphTraverser:
         finally:
             self.dataLock.release()
 
-    def size(self):
+    def get_size(self):
         """
         return the size of the data
         """

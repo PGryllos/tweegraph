@@ -28,6 +28,6 @@ if __name__ == "__main__":
     traverser.start()
 
     while True:
-        if traverser.size() > 0:
-            traverser.exportData()
+        if traverser.get_size() > 0:
+            traverser.export_data()
             sleep(5)
