@@ -1,7 +1,7 @@
 import json
 import Queue
 import logging
-import pandas as pd
+import numpy as np
 from time import sleep
 
 from threading import Thread, Lock as thread_lock
@@ -61,15 +61,15 @@ class TwitterGraphTraverser:
     """
     def __init__(self, starting_ids, credentials, breadth, graph_size,
                  directions=['followers', 'following']):
-        self.credentials = credentials
         self.breadth = breadth
         self.graph_size = graph_size
         self.directions = directions
         self.starting_ids = starting_ids
+        self.links = []
+        self.explored_nodes = {}
         self.connections = Queue.Queue()
         self.found_nodes = Queue.Queue()
-        self.explored_nodes = {}
-        self.links = pd.DataFrame(columns=['nodeId', 'followerId'])
+        self.credentials = credentials
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
 
@@ -132,9 +132,11 @@ class TwitterGraphTraverser:
         while True:
             follower, node = self.connections.get(True)
             self.connections.task_done()
+
+            # lock used for thread safety between find_nodes and export_data
             self.dataLock.acquire()
             try:
-                self.links.loc[len(self.links)] = follower, node
+                self.links.append((follower, node))
             finally:
                 self.dataLock.release()
 
@@ -143,24 +145,19 @@ class TwitterGraphTraverser:
 
     def exportData(self):
         """
-        save links to file and clear dataframe
+        save links to file
         """
         self.dataLock.acquire()
         try:
-            self.links = self.links.astype(int)
-            self.links.to_csv('links.csv', index=False, sep=',', header=False)
+            np.savetxt('links.csv', self.links, fmt='%i')
         finally:
             self.dataLock.release()
 
     def size(self):
         """
-        return the size of the data in a thread safe manner
+        return the size of the data
         """
-        self.dataLock.acquire()
-        try:
-            return len(self.links)
-        finally:
-            self.dataLock.release()
+        return len(self.links)
 
     def start(self):
         """
