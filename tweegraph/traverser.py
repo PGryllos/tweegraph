@@ -3,6 +3,7 @@ import Queue
 import logging
 import numpy as np
 from time import sleep
+from collections import defaultdict
 from functools import wraps
 
 from threading import Thread, Lock as thread_lock
@@ -63,14 +64,8 @@ def api_caller(logger_name):
 
 class TwitterGraphTraverser:
     """
-    TwitterGraphTraverser class.
-
-    Implements traversing mechanism, in a fixed-breadth manner, taking
-    advantage of multiple api keys if provided.
-
-    The server is implemented by find_nodes() which is responsible for adding
-    new visited nodes for expansion. The crawling process is being handed by
-    explore_graph() workers.
+    TwitterGraphTraverser class. Implements traversing mechanism, in a BFS
+    manner, taking advantage of multiple api keys if provided.
     """
     logger = log_wrap(log_name='twitter_traverser', console=True)
 
@@ -78,16 +73,16 @@ class TwitterGraphTraverser:
                  directions=['followers', 'following']):
         self.breadth = breadth
         self.graph_size = graph_size
+        self.nodes_count = len(starting_ids)
         self.directions = directions
-        self.starting_ids = starting_ids
-        self.links = []
-        self.explored_nodes = {}
-        self.connections = Queue.Queue()
-        self.found_nodes = Queue.Queue()
+        self.explored_nodes = defaultdict(dict)
+        self.new_nodes = Queue.Queue()
         self.credentials = credentials
-        self.dataLock = thread_lock()
-        self.exploredLock = thread_lock()
+        self.explored_lock = thread_lock()
+        self.count_lock = thread_lock()
 
+        for node in starting_ids:
+            self.new_nodes.put(node)
 
     @api_caller(logger.name + '.graph_explorer')
     def explore_graph(self, api=None, logger=None):
@@ -96,86 +91,77 @@ class TwitterGraphTraverser:
             explore = True
             followers = []
             following = []
-            node = self.found_nodes.get(True)
-            self.found_nodes.task_done()
+
+            if self.get_size() >= self.graph_size:
+                logger.info('terminating')
+                return
+
+            node = self.new_nodes.get(True)
+            self.new_nodes.task_done()
 
             # check if node is already explored
-            self.exploredLock.acquire()
+            self.explored_lock.acquire()
             try:
                 if node in self.explored_nodes:
                     explore = False
                 else:
-                    self.explored_nodes[node] = True
+                    self.explored_nodes[node]['explored'] = True
             finally:
-                self.exploredLock.release()
-
-            # termination condition
-            if self.get_size() >= self.graph_size:
-                logger.info('terminating')
-                return
+                self.explored_lock.release()
 
             # retrieve x followers of the node. x = breadth
             if explore and 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
                                          self.breadth, logger)
-                # avoid spending requests in case node has set privacy on
-                if not followers:
-                    continue
                 for follower in followers:
-                    self.connections.put((follower, node))
+                    self.new_nodes.put(follower)
 
             # retrieve x friends of the node. x = breadth
             if explore and 'following' in self.directions:
                 following = request_data(api.friends_ids, node,
                                          self.breadth, logger)
-                if not following:
-                    continue
                 for friend in following:
-                    self.connections.put((node, friend))
+                    self.new_nodes.put(friend)
 
-    def find_nodes(self):
-        """
-        find new nodes for exploration
-        """
-        for node in self.starting_ids:
-            self.found_nodes.put(node)
-
-        while True:
-            follower, node = self.connections.get(True)
-            self.connections.task_done()
-
-            # lock used for thread safety between find_nodes and export_data
-            self.dataLock.acquire()
+            # lock used for thread safety with export_data method
+            self.explored_lock.acquire()
             try:
-                self.links.append((follower, node))
+                self.explored_nodes[node]['followers'] = followers
+                self.explored_nodes[node]['following'] = following
             finally:
-                self.dataLock.release()
+                self.explored_lock.release()
 
-            self.found_nodes.put(follower)
-            self.found_nodes.put(node)
+            self.count_lock.acquire()
+            try:
+                self.nodes_count += len(followers) + len(following)
+            finally:
+                self.count_lock.release()
 
     def export_data(self):
         """
-        save links to file
+        save relations in json format
         """
-        self.dataLock.acquire()
+        self.explored_lock.acquire()
         try:
-            np.savetxt('links.csv', self.links, fmt='%i')
+            with open('twitter_relations.json', 'w') as exported_data:
+                json.dump(self.explored_nodes, exported_data)
         finally:
-            self.dataLock.release()
+            self.explored_lock.release()
 
     def get_size(self):
         """
-        return the size of the data
+        return the number of collected nodes
         """
-        return len(self.links)
+        self.count_lock.acquire()
+        try:
+            return self.nodes_count
+        finally:
+            self.count_lock.release()
 
     def start(self):
         """
         initiate graph traversing
         """
-        # start node finder
-        Thread(target=self.find_nodes).start()
         # start as many crawlers as api keys
         for tokens in self.credentials:
             Thread(target=self.explore_graph, kwargs={'api': tokens}).start()
