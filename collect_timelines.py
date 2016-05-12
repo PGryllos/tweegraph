@@ -6,17 +6,14 @@ from time import sleep
 from argparse import ArgumentParser
 
 from tweegraph.api import create_api_instance, request_data
-from tweegraph.traverser import log_wrap
+from tweegraph.traverser import api_caller
 from tweegraph.data import unique_nodes
 from tweegraph.db import get_number_of_users
 
 
-def store_timelines(tokens, collection, amount, user_list, worker_id):
-    logger = log_wrap('retrieve_timelines.' + str(worker_id))
-
-    api = create_api_instance(tokens)
-    logger.info('worker authenticated')
-
+@api_caller('retrieve_timelines')
+def store_timelines(api=None, logger=None, collection, amount, user_list,
+                    worker_id):
     for user in user_list:
         timeline = request_data(api.user_timeline, user, amount, logger)
         sleep(1)
