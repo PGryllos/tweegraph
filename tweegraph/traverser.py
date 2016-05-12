@@ -99,7 +99,7 @@ class TwitterGraphTraverser:
                 self.exploredLock.release()
 
             # termination condition
-            if self.size() >= self.graph_size:
+            if self.get_size() >= self.graph_size:
                 logger.info('terminating')
                 return
 
