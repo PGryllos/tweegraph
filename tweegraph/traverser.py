@@ -105,7 +105,8 @@ class TwitterGraphTraverser:
                 if node in self.explored_nodes:
                     explore = False
                 else:
-                    self.explored_nodes[node]['explored'] = True
+                    self.explored_nodes[node]['followers'] = []
+                    self.explored_nodes[node]['following'] = []
             finally:
                 self.explored_lock.release()
 
