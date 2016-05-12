@@ -3,6 +3,7 @@ import Queue
 import logging
 import numpy as np
 from time import sleep
+from functools import wraps
 
 from threading import Thread, Lock as thread_lock
 from tweegraph.api import create_api_instance, request_data
@@ -48,6 +49,18 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
     return logger
 
 
+def api_caller(logger_name):
+    def api_caller_decorator(method):
+        @wraps(method)
+        def caller_wrapper(*args, **kwargs):
+            logger = log_wrap(logger_name)
+            kwargs['api'] = create_api_instance(kwargs['api'])
+            logger.info('worker authenticated')
+            return method(logger=logger, *args, **kwargs)
+        return caller_wrapper
+    return api_caller_decorator
+
+
 class TwitterGraphTraverser:
     """
     TwitterGraphTraverser class.
@@ -59,6 +72,8 @@ class TwitterGraphTraverser:
     new visited nodes for expansion. The crawling process is being handed by
     explore_graph() workers.
     """
+    logger = log_wrap(log_name='twitter_traverser', console=True)
+
     def __init__(self, starting_ids, credentials, breadth, graph_size,
                  directions=['followers', 'following']):
         self.breadth = breadth
@@ -73,13 +88,9 @@ class TwitterGraphTraverser:
         self.dataLock = thread_lock()
         self.exploredLock = thread_lock()
 
-        self.logger = log_wrap(log_name=self.__class__.__name__, console=True)
 
-    def explore_graph(self, tokens):
-        logger = log_wrap(self.logger.name + '.graph_explorer')
-
-        api = create_api_instance(tokens)
-        logger.info('worker authenticated')
+    @api_caller(logger.name + '.graph_explorer')
+    def explore_graph(self, api=None, logger=None):
 
         while True:
             explore = True
@@ -167,4 +178,4 @@ class TwitterGraphTraverser:
         Thread(target=self.find_nodes).start()
         # start as many crawlers as api keys
         for tokens in self.credentials:
-            Thread(target=self.explore_graph, args=(tokens,)).start()
+            Thread(target=self.explore_graph, kwargs={'api': tokens}).start()
