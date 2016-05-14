@@ -62,5 +62,4 @@ def get_edges_from_dict(relations):
         edges.extend(rel_fol)
         edges.extend(rel_fri)
 
-    print edges
     return edges
