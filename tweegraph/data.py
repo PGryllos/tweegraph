@@ -63,3 +63,34 @@ def get_edges_from_dict(relations):
         edges.extend(rel_fri)
 
     return edges
+
+
+def get_mutual_following_edges(relations, edges=None):
+    """Produce the list mutual following edges. By using the following list of
+    each node and the relations dictionay it determines which edges are
+    birected
+
+    Parameters
+    ----------
+        relations : dictionary of dictionaries
+            A dictionary that contains a dictionary with the keys 'following'
+            and 'followers' for each key (id).
+        edges : (optional) list of tuples nodes in the form (follower, node)
+            if no edges list is provided the edges list is computed directly
+            from the relations dictinary
+    Returns
+    -------
+        mutual_edges : list of tuples nodes in the form (follower, node)
+            list of bidirectional edges
+    """
+    bi_edges = []
+    if not edges:
+        edges = get_edges_from_dict(relations)
+
+    relations = {str(key): value for key, value in relations.items()}
+    for follower, node in edges:
+        if str(node) in relations and \
+                follower in relations[str(node)]['following']:
+            bi_edges.append((follower, node))
+
+    return bi_edges

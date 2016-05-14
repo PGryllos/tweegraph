@@ -2,6 +2,7 @@ import tweepy
 
 from data import get_unique_nodes_from_dict as un_nodes_dict
 from data import get_edges_from_dict as edges_dict
+from data import get_mutual_following_edges as mutual_edges
 
 
 test_dict = {
@@ -25,6 +26,8 @@ edges = [(2, 1), (3, 1), (45, 1), (6, 1), (88, 1),
          (3, 45), (6, 45), (88, 45),
          (45, 43), (45, 65), (45, 1), (45, 123)]
 
+m_edges = [(2, 1), (1, 2), (1, 2), (2, 1)]
+
 
 def test_unique_nodes():
     nodes = un_nodes_dict(test_dict)
@@ -36,3 +39,11 @@ def test_edges():
     global test_dict
     all_edges = edges_dict(test_dict)
     assert all_edges == edges
+
+
+def test_mutual_following():
+    global test_dict
+    global edges
+    global m_edges
+    list_of_mutual_edges = mutual_edges(test_dict, edges)
+    assert list_of_mutual_edges == m_edges
