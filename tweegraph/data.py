@@ -35,6 +35,7 @@ def get_unique_nodes_from_dict(relations):
     """
     nodes = []
     for key in relations:
+        nodes.append(key)
         nodes.extend(relations[key]['followers'])
         nodes.extend(relations[key]['following'])
 
