@@ -3,7 +3,7 @@
 import pandas as pd
 
 
-def unique_nodes_from_file(file_name):
+def get_unique_nodes_from_file(file_name):
     """Returns all the unique nodes contained in a file that describes edges
     of a network
 
