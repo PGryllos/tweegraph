@@ -27,7 +27,34 @@ def request_handler(cursor, logger):
                 yield None
 
 
-def request_data(query, node, size, logger):
+def request_data(query, node, size=None, logger=None):
+    """request data from twitter
+
+    Parameters
+    ----------
+        query  : tweepy.api instance query
+        node   : id of node that is used for the query
+        size   : amount of requested items (optional)
+            used when specific amount of items is required.
+        logger : logger instance to be used for logging events
+    Returns
+    -------
+        data : a list with the requested data, if data are available
+
+    Example
+    -------
+    >>> import tweepy 
+    >>> import logging
+
+    >>> auth = tweepy.OAuthHandler(api_key, api_secret)
+    >>> auth.set_access_token(access, access_secret)
+    >>> api = tweepy.API(auth)
+
+    >>> logger = logging.getLogger('test_logger')
+
+    >>> user = 1234125
+    >>> user_timeline = request_data(api.user_timeline, node, logger=logger)
+    """
     data = []
     handler = request_handler
     if not size:
