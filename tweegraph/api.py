@@ -33,13 +33,13 @@ def request_data(query, node, size, logger):
     if not size:
         for page in handler(tweepy.Cursor(query, id=node).pages(), logger):
             if not page:
-                return None
+                return []
             data.extend(page)
             sleep(10)
     else:
         for item in handler(tweepy.Cursor(query, id=node).items(size), logger):
             if not item:
-                return None
+                return []
             data.append(item)
             sleep(10)
     return data
