@@ -17,10 +17,18 @@ if __name__ == "__main__":
                     50393960,    # bill gates
                     31927467,    # pitbull
                     2292454922]  # tsipras_eu
+#
+#   starting_ids = [2872661847, # Dennis Koutoudis
+#                   124690469,  # Yanis Varoufakis
+#                   337126547,  # Fay Skorda
+#                   852894361,  # Paok against All
+#                   585119509,  # httpmarinaa
+#                   408566492,  # Panos Skourletis
+#                   2292454922] # alexis tsipras
 
     # create TwitterGraphTraverser instance
     traverser = TwitterGraphTraverser(breadth=None,
-                                      graph_size=2500,
+                                      graph_size=400000,
                                       starting_ids=starting_ids,
                                       directions=['following'],
                                       credentials=credentials)
