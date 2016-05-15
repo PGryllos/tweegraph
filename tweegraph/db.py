@@ -44,7 +44,8 @@ def get_tweets(db_name, user_id):
 
 
 def create_user_topic_affiliation_dict(db_name):
-    """returns the user-topic affilication dictionary
+    """returns the user-topic affilication dictionary proposed by Yuan et al.
+    in their study 'Exploiting Sentiment Homophily for Link Prediction'
 
     Parameters
     ----------
