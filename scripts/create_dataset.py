@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 from itertools import combinations
 import pandas as pd
 
+from tweegraph.data import get_unique_nodes_from_file as unique_nodes
+
 
 def get_pair_id(id_1, id_2):
     return str(id_1) + '_' + str(id_2)
@@ -32,12 +34,11 @@ if __name__ == "__main__":
     file_name = args.input_file
 
     # taking the list of the unique nodes and creating all the pairs
-    edges = pd.read_csv(file_name, names=['id_1', 'id_2'])
-    nodes = pd.concat([edges['id_1'], edges['id_2']])
-    nodes = list(nodes.drop_duplicates())
+    nodes = unique_nodes(file_name)
     pairs = list(combinations(nodes, 2))
 
-    # turning dataFrame edges to dict for fast look up
+    # turning edges to dict for fast look up
+    edges = pd.read_csv(file_name, names=['id_1', 'id_2'])
     edges['label'] = 1
     edges = edges.set_index(['id_1', 'id_2']).to_dict()['label']
 

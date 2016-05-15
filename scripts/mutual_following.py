@@ -1,17 +1,9 @@
 # given an edges file keep only the mutual following nodes
-from argparse import ArgumentParser
+import json
 import pandas as pd
+from argparse import ArgumentParser
 
-
-def check_if_mutual(row):
-    # check if both id_1 -> id_2 and id_2 -> id_1 relations exist
-    id_1 = row[0]
-    id_2 = row[1]
-
-    if ((edges['id_1'] == id_2) & (edges['id_2'] == id_1)).any():
-        return True
-    else:
-        return False
+from tweegraph.data import get_mutual_following_edges as mutual_edges
 
 
 if __name__ == "__main__":
@@ -24,11 +16,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     file_name = args.input_file
 
-    edges = pd.read_csv(file_name, names=['id_1', 'id_2'])
-    edges['mutual'] = True
+    with open(file_name) as json_file:
+        relations_dict = json.load(json_file)
 
-    edges['mutual'] = edges[['id_1', 'id_2']].apply(check_if_mutual, 1)
-    edges = edges[edges['mutual'] == True]
+    m_edges = mutual_edges(relations_dict)
+    m_edges = pd.DataFrame(m_edges, columns=['follower', 'node'])
+    m_edges = m_edges.drop_duplicates()
 
-    edges.to_csv('mutual_following.csv', columns=['id_1', 'id_2'],
-                 names=False, index=False)
+    m_edges.to_csv('mutual_following.csv', columns=['follower', 'node'],
+                   names=False, index=False)
