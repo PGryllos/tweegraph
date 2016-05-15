@@ -9,11 +9,12 @@ def get_unique_nodes_from_file(file_name):
 
     Parameters
     ----------
-        file_name : str
-            csv file with two columns that both contain node ids
+    file_name : str
+        csv file with two columns that both contain node ids
+
     Returns
     -------
-        nodes : list of all the unique nodes
+    nodes : list of all the unique nodes
     """
     edges = pd.read_csv(file_name, names=['node_1', 'node_2'])
     nodes = pd.concat([edges['node_1'], edges['node_2']])
@@ -26,12 +27,13 @@ def get_unique_nodes_from_dict(relations):
 
     Parameters
     ----------
-        relations : dictionary of dictionaries
-            A dictionary that contains a dictionary with the keys 'following'
-            and 'followers' for each key (id)
+    relations : dictionary of dictionaries
+        A dictionary that contains a dictionary with the keys 'following' and
+        'followers' for each key (id)
+
     Returns
     -------
-        nodes : list of unique nodes in the dictionary
+    nodes : list of unique nodes in the dictionary
     """
     nodes = []
     for key in relations:
@@ -49,12 +51,13 @@ def get_edges_from_dict(relations):
 
     Parameters
     ----------
-        relations : dictionary of dictionaries
-            A dictionary that contains a dictionary with the keys 'following'
-            and 'followers' for each key (id)
+    relations : dictionary of dictionaries
+        A dictionary that contains a dictionary with the keys 'following' and
+        'followers' for each key (id)
+
     Returns
     -------
-        edges : list of tuples nodes in the form (follower, node)
+    edges : list of tuples nodes in the form (follower, node)
     """
     edges = []
     for key in relations:
@@ -73,16 +76,17 @@ def get_mutual_following_edges(relations, edges=None):
 
     Parameters
     ----------
-        relations : dictionary of dictionaries
-            A dictionary that contains a dictionary with the keys 'following'
-            and 'followers' for each key (id).
-        edges : (optional) list of tuples nodes in the form (follower, node)
-            if no edges list is provided the edges list is computed directly
-            from the relations dictinary
+    relations : dictionary of dictionaries
+        A dictionary that contains a dictionary with the keys 'following' and
+        'followers' for each key (id).
+    edges : (optional) list of tuples nodes in the form (follower, node)
+        if no edges list is provided the edges list is computed directly from
+        the relations dictinary
+
     Returns
     -------
-        mutual_edges : list of tuples nodes in the form (follower, node)
-            list of bidirectional edges
+    mutual_edges : list of tuples nodes in the form (follower, node)
+        list of bidirectional edges
     """
     bi_edges = []
     if not edges:
