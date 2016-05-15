@@ -1,4 +1,5 @@
 # MongoDB queries
+from collections import defaultdict
 from pymongo import MongoClient
 
 
@@ -40,3 +41,30 @@ def get_tweets(db_name, user_id):
             tweets.append(status['text'])
 
     return tweets
+
+
+def create_user_topic_affiliation_dict(db_name):
+    """returns the user-topic affilication dictionary
+
+    Parameters
+    ----------
+    db_name : str
+        name of the database. Database is supposed to contain a collection for
+        each user. Each collection is supposed to contain a list of retrieved
+        statuses under the key 'content'
+
+    Returns
+    -------
+    user_topic_dict : dict in the for dict{user_id: {topic: sentiment_score}}
+    """
+    user_topic_dict = defaultdict(dict)
+
+    db_client = MongoClient()
+
+    for user in db_client[db_name].collection_names():
+        for timeline in db_client[db_name][user].find():
+            for status in timeline['content']:
+                for hashtag in status['entities']['hashtags']:
+                    user_topic_dict[user][hashtag['text']] = [0, 1, 0]
+
+    return user_topic_dict
