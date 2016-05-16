@@ -69,3 +69,33 @@ def create_user_topic_affiliation_dict(db_name):
                     user_topic_dict[user][hashtag['text']] = [0, 1, 0]
 
     return user_topic_dict
+
+
+def create_topic_user_dict(db_name):
+    """returns the a topic to list of users dictionary
+
+    Parameters
+    ----------
+    db_name : str
+        name of the database. Database is supposed to contain a collection for
+        each user. Each collection is supposed to contain a list of retrieved
+        statuses under the key 'content'
+
+    Returns
+    -------
+    topic_user_dict : dict in the for dict{topic: [user_1, user_2, ...]}
+    """
+    topic_user_dict = defaultdict(list)
+
+    db_client = MongoClient()
+
+    for user in db_client[db_name].collection_names():
+        for timeline in db_client[db_name][user].find():
+            hashtags = []
+            for status in timeline['content']:
+                for hashtag in status['entities']['hashtags']:
+                    hashtags.append(hashtag['text'])
+            for hashtag in set(hashtags):
+                topic_user_dict[hashtag].append(user)
+
+    return topic_user_dict
