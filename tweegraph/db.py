@@ -3,6 +3,22 @@ from collections import defaultdict
 from pymongo import MongoClient
 
 
+def store_timeline(db_name, user_id, timeline):
+    """stores the timeline as a list of json formated statuses in
+    db -> db_name[user_id] under the key 'content'
+
+    db_name  : name of the database
+    user_id  : twitter id of user
+    timeline : user timeline entity as returned by the twitter api
+    """
+    db_client = MongoClient()
+    timeline = [status._json for status in timeline]
+
+    if timeline:
+        db_client[db_name][user_id].insert_one({'_id': user_id,
+                                                'content': timeline})
+
+
 def get_number_of_collections(db_name):
     """returns the number of collections stored in the db specified by
     db_name

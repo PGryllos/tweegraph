@@ -8,6 +8,7 @@ from functools import wraps
 
 from threading import Thread, Lock as thread_lock
 from tweegraph.api import create_api_instance, request_data
+from tweegraph.db import store_timeline
 
 
 def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
@@ -60,6 +61,42 @@ def api_caller(logger_name):
             return method(logger=logger, *args, **kwargs)
         return caller_wrapper
     return api_caller_decorator
+
+
+@api_caller('collect_timelines.retriever')
+def get_and_store_timelines(db_name, user_list, api=None, logger=None):
+    for user in user_list:
+        timeline = request_data(api.user_timeline, user, logger=logger)
+        store_timeline(db_name, user, timeline)
+        sleep(1)
+
+
+def crawl_timelines(db_name, user_list, credentials):
+    """Crawl timelines of the users specified in the user_list and store them
+    in MongoDB under db -> db_name[user_id]. Timelines are stored as a list
+    under the key 'content' in each user's collection. The method takes
+    advantage of multiple api keys, if provided.
+
+    Parameters
+    ----------
+    db_name     : name of the database to use for storing timelines
+    user_list   : list of user ids
+    credentials : dictionary which values are the api tokens that are provided
+        from twitter when registering an app at apps.twitter
+        >>> help(tweegraph.api.create_api_instance)
+    """
+    logger = log_wrap('collect_timelines', console=True)
+
+    chunk = int(len(user_list) / len(credentials))
+    # spawn a crawler for each of the equally divided pieces of the user list
+    for idx, tokens in enumerate(credentials[:-1]):
+        nodes = user_list[idx * chunk: chunk * (idx+1)]
+        Thread(target=get_and_store_timelines,
+               args=(db_name, nodes), kwargs={'api': tokens}).start()
+
+    nodes = user_list[(idx+1) * chunk:]
+    Thread(target=get_and_store_timelines,
+           args=(db_name, nodes), kwargs={'api': credentials[-1]}).start()
 
 
 class TwitterGraphTraverser:

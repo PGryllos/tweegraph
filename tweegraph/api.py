@@ -3,6 +3,15 @@ from time import sleep
 
 
 def create_api_instance(tokens):
+    """return authenticated tweepy api instance. In order to do that
+    you need to provide a dictionary which values are the four tokens
+    provided by apps.twitter when registering an app.
+
+    Parameters
+    ----------
+    tokens : dict{'api_key': <api_key>, 'api_secret': <api_secret>,
+                  'access': <access>, 'access_secret': <secret_access>}
+    """
     auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
     auth.set_access_token(tokens['access'], tokens['access_secret'])
     api = tweepy.API(auth)
