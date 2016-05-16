@@ -52,6 +52,8 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
 
 
 def api_caller(logger_name):
+    """decorator that provides decorated methods with an authenticated api
+    instance and a logger object"""
     def api_caller_decorator(method):
         @wraps(method)
         def caller_wrapper(*args, **kwargs):
@@ -101,13 +103,32 @@ def crawl_timelines(db_name, user_list, credentials):
 
 class TwitterGraphTraverser:
     """
-    TwitterGraphTraverser class. Implements traversing mechanism, in a BFS
-    manner, taking advantage of multiple api keys if provided.
+    TwitterGraphTraverser class. Implements BFS traversing mechanism. Starting
+    from one or multiple nodes, if provided and taking advantage of multiple
+    api keys, if provided.
+
+    Parameters
+    ----------
+    starting_ids : list of twitter ids to start the traversing from
+
+    credentials  : dictionary which values are the api tokens that are provided
+        from twitter when registering an app at apps.twitter
+        >>> help(tweegraph.api.create_api_instance)
+
+    graph_size   : number of user_ids to collect
+
+    directions   : ['followers', 'following'], ['followers'], ['following']
+        choose whether to crawl on each user's out-edges or in-edges or both.
+        defaults to ['followers', 'following']
+
+    breadth      : number of neighbors to collect for each user.
+        when set to None all neighbors are collected and traversing algorithm
+        results to normal BFS. Defaults to None
     """
     logger = log_wrap(log_name='twitter_traverser', console=True)
 
-    def __init__(self, starting_ids, credentials, breadth, graph_size,
-                 directions=['followers', 'following']):
+    def __init__(self, starting_ids, credentials, graph_size,
+                 directions=['followers', 'following'], breadth=None):
         self.breadth = breadth
         self.graph_size = graph_size
         self.nodes_count = len(starting_ids)
