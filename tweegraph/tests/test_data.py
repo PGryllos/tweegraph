@@ -1,8 +1,8 @@
 import tweepy
 
-from data import get_unique_nodes_from_dict as un_nodes_dict
-from data import get_edges_from_dict as edges_dict
-from data import get_mutual_following_edges as mutual_edges
+from .. data import get_unique_nodes_from_dict as un_nodes_dict
+from .. data import get_edges_from_dict as edges_dict
+from .. data import get_mutual_following_edges as mutual_edges
 
 
 test_dict = {
