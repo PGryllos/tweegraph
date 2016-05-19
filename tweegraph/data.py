@@ -37,13 +37,16 @@ def get_unique_nodes_from_dict(relations):
     """
     nodes = []
     for key in relations:
-        nodes.append(key)
+        nodes.append(int(key))
         nodes.extend(relations[key]['followers'])
         nodes.extend(relations[key]['following'])
 
     nodes = pd.DataFrame(nodes, columns=['node']).drop_duplicates()
+    nodes = list(set(list(nodes['node'])))
+    nodes.sort()
 
-    return list(nodes['node'])
+    return nodes
+
 
 
 def get_edges_from_dict(relations):

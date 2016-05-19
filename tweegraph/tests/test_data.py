@@ -31,7 +31,6 @@ m_edges = [(2, 1), (1, 2), (1, 2), (2, 1)]
 
 def test_unique_nodes():
     nodes = un_nodes_dict(test_dict)
-    nodes.sort()
     assert nodes == unique_nodes
 
 
