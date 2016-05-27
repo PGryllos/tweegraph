@@ -168,15 +168,18 @@ class TwitterGraphTraverser:
             finally:
                 self.explored_lock.release()
 
+            if not explore:
+                continue
+
             # retrieve x followers of the node. x = breadth
-            if explore and 'followers' in self.directions:
+            if 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
                                          self.breadth, logger)
                 for follower in followers:
                     self.new_nodes.put(follower)
 
             # retrieve x friends of the node. x = breadth
-            if explore and 'following' in self.directions:
+            if 'following' in self.directions:
                 following = request_data(api.friends_ids, node,
                                          self.breadth, logger)
                 for friend in following:
