@@ -1,0 +1,59 @@
+unicode_code,bytes_code,description,pos_score,neg_score,obj_score,sentiment_desc
+\U0001f601,\xf0\x9f\x98\x81,grinning face with smiling eyes,0.75,0,0.25,positive
+\U0001f602,\xf0\x9f\x98\x82,face with tears of joy,1,0,0,extremely positive
+\U0001f603,\xf0\x9f\x98\x83,smiling face with open mouth,1,0,0,extremely positive
+\U0001f604,\xf0\x9f\x98\x84,smiling face with open mouth and smiling eyes,1,0,0,extremely positive
+\U0001f605,\xf0\x9f\x98\x85,smiling face with open mouth and cold sweat,0.75,0,0.25,positive
+\U0001f606,\xf0\x9f\x98\x86,smiling face with open mouth and tightly-closed eyes,1,0,0,extremely positive
+\U0001f609,\xf0\x9f\x98\x89,winking face,0.75,0,0.25,positive
+\U0001f60a,\xf0\x9f\x98\x8a,smiling face with smiling eyes,0.75,0,0.25,positive
+\U0001f60b,\xf0\x9f\x98\x8b,face savouring delicious food,0.75,0,0.25,positive
+\U0001f60c,\xf0\x9f\x98\x8c,relieved face,0.5,0,0.5,slightly positive
+\U0001f60d,\xf0\x9f\x98\x8d,smiling face with heart-shaped eyes,1,0,0,extremely positive
+\U0001f60f,\xf0\x9f\x98\x8f,smirking face,0.5,0,0.5,slightly positive
+\U0001f612,\xf0\x9f\x98\x92,unamused face,0,0.5,0.5,slightly negative
+\U0001f613,\xf0\x9f\x98\x93,face with cold sweat,0,0.5,0.5,slightly negative
+\U0001f614,\xf0\x9f\x98\x94,pensive face,0,0.5,0.5,slightly negative
+\U0001f616,\xf0\x9f\x98\x96,confounded face,0,0.75,0.25,negative
+\U0001f618,\xf0\x9f\x98\x98,face throwing a kiss,0.75,0,0.25,positive
+\U0001f61a,\xf0\x9f\x98\x9a,kissing face with closed eyes,0.75,0,0.25,positive
+\U0001f61c,\xf0\x9f\x98\x9c,face with stuck-out tongue and winking eye,1,0,0,extremely positive
+\U0001f61d,\xf0\x9f\x98\x9d,face with stuck-out tongue and tightly-closed eyes,1,0,0,extremely positive
+\U0001f61e,\xf0\x9f\x98\x9e,disappointed face,0,0.75,0.25,negative
+\U0001f620,\xf0\x9f\x98\xa0,angry face,0,1,0,extremely negative
+\U0001f621,\xf0\x9f\x98\xa1,pouting face,0,1,0,extremely negative
+\U0001f622,\xf0\x9f\x98\xa2,crying face,0,1,0,extremely negative
+\U0001f623,\xf0\x9f\x98\xa3,persevering face,0,0.5,0.5,slightly negative
+\U0001f624,\xf0\x9f\x98\xa4,face with look of triumph,0.75,0,0.25,positive
+\U0001f625,\xf0\x9f\x98\xa5,disappointed but relieved face,0,0.75,0.25,negative
+\U0001f628,\xf0\x9f\x98\xa8,fearful face,0,0.75,0.25,negative
+\U0001f629,\xf0\x9f\x98\xa9,weary face,0,1,0,extremely negative
+\U0001f62a,\xf0\x9f\x98\xaa,sleepy face,0,0,1,neutral
+\U0001f62b,\xf0\x9f\x98\xab,tired face,0,0.75,0.25,negative
+\U0001f62d,\xf0\x9f\x98\xad,loudly crying face,0,1,0,extremely negative
+\U0001f630,\xf0\x9f\x98\xb0,face with open mouth and cold sweat,0,0.75,0.25,negative
+\U0001f631,\xf0\x9f\x98\xb1,face screaming in fear,0,1,0,extremely negative
+\U0001f632,\xf0\x9f\x98\xb2,astonished face,0,0,1,neutral
+\U0001f633,\xf0\x9f\x98\xb3,flushed face,0,0,1,neutral
+\U0001f635,\xf0\x9f\x98\xb5,dizzy face,0,0,1,neutral
+\U0001f637,\xf0\x9f\x98\xb7,face with medical mask,0,0.5,0.5,slightly negative
+\U0001f638,\xf0\x9f\x98\xb8,grinning cat face with smiling eyes,0.75,0,0.25,positive
+\U0001f639,\xf0\x9f\x98\xb9,cat face with tears of joy,1,0,0,extremely positive
+\U0001f63a,\xf0\x9f\x98\xba,smiling cat face with open mouth,1,0,0,extremely positive
+\U0001f63b,\xf0\x9f\x98\xbb,smiling cat face with heart-shaped eyes,1,0,0,extremely positive
+\U0001f63c,\xf0\x9f\x98\xbc,cat face with wry smile,0.75,0,0.25,positive
+\U0001f63d,\xf0\x9f\x98\xbd,kissing cat face with closed eyes,0.75,0,0.25,positive
+\U0001f63e,\xf0\x9f\x98\xbe,pouting cat face,0,0.75,0.25,negative
+\U0001f63f,\xf0\x9f\x98\xbf,crying cat face,0,0.75,0.25,negative
+\U0001f640,\xf0\x9f\x99\x80,weary cat face,0,0.75,0.25,negative
+\U0001f645,\xf0\x9f\x99\x85,face with no good gesture,0,0.5,0.5,slightly negative
+\U0001f646,\xf0\x9f\x99\x86,face with ok gesture,0.5,0,0.5,slightly positive
+\U0001f647,\xf0\x9f\x99\x87,person bowing deeply,0.5,0,0.5,slightly positive
+\U0001f648,\xf0\x9f\x99\x88,see-no-evil monkey,0.5,0,0.5,slightly positive
+\U0001f649,\xf0\x9f\x99\x89,hear-no-evil monkey,0.5,0,0.5,slightly positive
+\U0001f64a,\xf0\x9f\x99\x8a,speak-no-evil monkey,0.5,0,0.5,slightly positive
+\U0001f64b,\xf0\x9f\x99\x8b,happy person raising one hand,0.5,0,0.5,slightly positive
+\U0001f64c,\xf0\x9f\x99\x8c,person raising both hands in celebration,0.5,0,0.5,slightly positive
+\U0001f64d,\xf0\x9f\x99\x8d,person frowning,0,0.5,0.5,slightly negative
+\U0001f64e,\xf0\x9f\x99\x8e,person with pouting face,0,0.5,0.5,slightly negative
+\U0001f64f,\xf0\x9f\x99\x8f,person with folded hands,0,0,1,neutral
