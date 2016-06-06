@@ -85,11 +85,9 @@ def request_data(query, node, size=None, logger=None):
             if not page:
                 return []
             data.extend(page)
-            sleep(10)
     else:
         for item in handler(tweepy.Cursor(query, id=node).items(size), logger):
             if not item:
                 return []
             data.append(item)
-            sleep(10)
     return data
