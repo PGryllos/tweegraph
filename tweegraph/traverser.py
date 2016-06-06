@@ -70,7 +70,7 @@ def get_and_store_timelines(db_name, user_list, api=None, logger=None):
     for user in user_list:
         timeline = request_data(api.user_timeline, user, logger=logger)
         store_timeline(db_name, user, timeline)
-        sleep(1)
+        sleep(5)
 
 
 def crawl_timelines(db_name, user_list, credentials):
@@ -177,6 +177,7 @@ class TwitterGraphTraverser:
                                          self.breadth, logger)
                 for follower in followers:
                     self.new_nodes.put(follower)
+                sleep(5)
 
             # retrieve x friends of the node. x = breadth
             if 'following' in self.directions:
@@ -184,6 +185,7 @@ class TwitterGraphTraverser:
                                          self.breadth, logger)
                 for friend in following:
                     self.new_nodes.put(friend)
+                sleep(5)
 
             # lock used for thread safety with export_data method
             self.explored_lock.acquire()
