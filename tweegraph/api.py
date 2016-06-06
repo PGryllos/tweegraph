@@ -14,7 +14,10 @@ def create_api_instance(tokens):
     """
     auth = tweepy.OAuthHandler(tokens['api_key'], tokens['api_secret'])
     auth.set_access_token(tokens['access'], tokens['access_secret'])
-    api = tweepy.API(auth)
+    if 'proxy' in tokens:
+        api = tweepy.API(auth, proxy=tokens['proxy'])
+    else:
+        api = tweepy.API(auth)
     return api
 
 
