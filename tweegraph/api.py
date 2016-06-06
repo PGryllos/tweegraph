@@ -25,18 +25,29 @@ def request_handler(cursor, logger):
     """
     handle requests. If limit reached halt for 15 min
     """
+    retries = 0
     while True:
         try:
             yield cursor.next()
         except tweepy.TweepError as e:
+            LOG_MSG = 'exploring node: ' + str(cursor.__dict__['kargs']['id'])
             if 'code' in e.message[0] and e.message[0]['code'] == 88 or \
                     str(e.response) == '<Response [429]>':
-                logger.info('Limit reached. Halting for 15 min')
+                logger.info('Limit reached. Halting for 15 min. ' + LOG_MSG)
                 sleep(15 * 60)
                 logger.info('Worker is active again')
             else:
-                logger.warning(e.response)
-                yield None
+                if e[0][:22] == 'Failed to send request':
+                    if retries == 100:
+                        logger.warning('Too many connection retries' + LOG_MSG)
+                        retries = 0
+                    retries += 1
+
+                    sleep(0.5)
+                    continue
+                else:
+                    logger.warning(e)
+                    yield None
 
 
 def request_data(query, node, size=None, logger=None):
