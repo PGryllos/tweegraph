@@ -101,7 +101,7 @@ def crawl_timelines(db_name, user_list, credentials):
            args=(db_name, nodes), kwargs={'api': credentials[-1]}).start()
 
 
-class TwitterGraphTraverser:
+class TwitterGraphTraverser(object):
     """
     TwitterGraphTraverser class. Implements BFS traversing mechanism. Starting
     from one or multiple nodes, if provided and taking advantage of multiple
