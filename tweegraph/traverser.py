@@ -1,3 +1,10 @@
+"""traverser module provides functionality for collecting twitter ids, in a BFS
+manner, starting from one or multiple nodes and / or twitter timelines
+"""
+
+# author: Prokopios Gryllos
+# gryllosprokopis@gmail.com
+
 import json
 import Queue
 import logging
@@ -17,7 +24,6 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
 
     Parameters
     ----------
-
     log_name  : str
         name to use for creating logger
     console   : bool
@@ -29,14 +35,13 @@ def log_wrap(log_name, console=False, log_file=False, file_name='log.txt'):
 
     Returns
     -------
-
     logger : logger object
     """
     logger = logging.getLogger(log_name)
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-            '[%(asctime)s - %(name)s - %(threadName)s - '
-            '%(levelname)s] - %(message)s')
+        '[%(asctime)s - %(name)s - %(threadName)s - '
+        '%(levelname)s] - %(message)s')
     if console:  # add console handler
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -67,6 +72,8 @@ def api_caller(logger_name):
 
 @api_caller('collect_timelines.retriever')
 def get_and_store_timelines(db_name, user_list, api=None, logger=None):
+    """retrieve timelines and store in a MongoDB database
+    """
     for user in user_list:
         timeline = request_data(api.user_timeline, user, logger=logger)
         store_timeline(db_name, user, timeline)
@@ -124,6 +131,14 @@ class TwitterGraphTraverser(object):
     breadth      : number of neighbors to collect for each user.
         when set to None all neighbors are collected and traversing algorithm
         results to normal BFS. Defaults to None
+
+    traverse    : bool
+        set to false to limit crawling the specified list of user ids
+    Methods
+    -------
+    export_data : saves the current crawled data in json format
+    get_size    : returns the number of collected nodes
+    start       : initiates crawling
     """
     logger = log_wrap(log_name='twitter_traverser', console=True)
 

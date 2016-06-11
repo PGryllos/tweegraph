@@ -48,7 +48,6 @@ def get_unique_nodes_from_dict(relations):
     return nodes
 
 
-
 def get_edges_from_dict(relations):
     """Produce the list edges described in the dictionary
 
