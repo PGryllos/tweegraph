@@ -166,6 +166,8 @@ class TwitterGraphTraverser(object):
         if not export_name:
             export_name = date.today().strftime("%Y-%m-%d")
             self.export_name = export_name + '_twitter_relations.json'
+        else:
+            self.export_name = export_name
 
     @api_caller(logger.name + '.graph_explorer')
     def _explore_graph(self, api=None, logger=None):
