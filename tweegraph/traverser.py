@@ -127,9 +127,11 @@ class TwitterGraphTraverser(object):
     """
     logger = log_wrap(log_name='twitter_traverser', console=True)
 
-    def __init__(self, starting_ids, credentials, graph_size,
-                 directions=['followers', 'following'], breadth=None):
+    def __init__(self, starting_ids, credentials, graph_size=None,
+                 directions=['followers', 'following'], breadth=None,
+                 traverse=True):
         self.breadth = breadth
+        self.traverse = traverse
         self.graph_size = graph_size
         self.nodes_count = len(starting_ids)
         self.directions = directions
@@ -142,15 +144,18 @@ class TwitterGraphTraverser(object):
         for node in starting_ids:
             self.new_nodes.put(node)
 
+        if not self.graph_size:
+            self.graph_size = self.nodes_count
+
     @api_caller(logger.name + '.graph_explorer')
-    def explore_graph(self, api=None, logger=None):
+    def _explore_graph(self, api=None, logger=None):
 
         while True:
             explore = True
             followers = []
             following = []
 
-            if self.get_size() >= self.graph_size:
+            if self.get_size() > self.graph_size:
                 logger.info('terminating')
                 return
 
@@ -175,17 +180,18 @@ class TwitterGraphTraverser(object):
             if 'followers' in self.directions:
                 followers = request_data(api.followers_ids, node,
                                          self.breadth, logger)
-                for follower in followers:
-                    self.new_nodes.put(follower)
-                sleep(5)
 
             # retrieve x friends of the node. x = breadth
             if 'following' in self.directions:
                 following = request_data(api.friends_ids, node,
                                          self.breadth, logger)
+
+            if self.traverse:
+                for follower in followers:
+                    self.new_nodes.put(follower)
                 for friend in following:
                     self.new_nodes.put(friend)
-                sleep(5)
+            sleep(5)
 
             # lock used for thread safety with export_data method
             self.explored_lock.acquire()
@@ -228,4 +234,4 @@ class TwitterGraphTraverser(object):
         """
         # start as many crawlers as api keys
         for tokens in self.credentials:
-            Thread(target=self.explore_graph, kwargs={'api': tokens}).start()
+            Thread(target=self._explore_graph, kwargs={'api': tokens}).start()

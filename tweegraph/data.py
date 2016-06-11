@@ -80,11 +80,11 @@ def get_mutual_following_edges(relations, edges=None):
     Parameters
     ----------
     relations : dictionary of dictionaries
-        A dictionary that contains a dictionary with the keys 'following' and
-        'followers' for each key (id).
+        A dictionary that contains a dictionary the key 'following' for each
+        key (id).
     edges : (optional) list of tuples nodes in the form (follower, node)
         if no edges list is provided the edges list is computed directly from
-        the relations dictinary
+        the relations dictionary
 
     Returns
     -------
