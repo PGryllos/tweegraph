@@ -160,9 +160,6 @@ class TwitterGraphTraverser(object):
         for node in starting_ids:
             self.new_nodes.put(node)
 
-        if not self.graph_size:
-            self.graph_size = self.nodes_count
-
         if not export_name:
             export_name = date.today().strftime("%Y-%m-%d")
             self.export_name = export_name + '_twitter_relations.json'
@@ -177,7 +174,8 @@ class TwitterGraphTraverser(object):
             followers = []
             following = []
 
-            if self.get_size() > self.graph_size:
+            if self.traverse and self.get_size() > self.graph_size or \
+                    not self.traverse and self.new_nodes.empty():
                 logger.info('terminating')
                 return
 
