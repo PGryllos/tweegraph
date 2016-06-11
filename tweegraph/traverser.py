@@ -12,6 +12,7 @@ import numpy as np
 from time import sleep
 from collections import defaultdict
 from functools import wraps
+from datetime import date
 
 from threading import Thread, Lock as thread_lock
 from tweegraph.api import create_api_instance, request_data
@@ -144,7 +145,7 @@ class TwitterGraphTraverser(object):
 
     def __init__(self, starting_ids, credentials, graph_size=None,
                  directions=['followers', 'following'], breadth=None,
-                 traverse=True):
+                 traverse=True, export_name=None):
         self.breadth = breadth
         self.traverse = traverse
         self.graph_size = graph_size
@@ -161,6 +162,10 @@ class TwitterGraphTraverser(object):
 
         if not self.graph_size:
             self.graph_size = self.nodes_count
+
+        if not export_name:
+            export_name = date.today().strftime("%Y-%m-%d")
+            self.export_name = export_name + '_twitter_relations.json'
 
     @api_caller(logger.name + '.graph_explorer')
     def _explore_graph(self, api=None, logger=None):
@@ -228,7 +233,7 @@ class TwitterGraphTraverser(object):
         """
         self.explored_lock.acquire()
         try:
-            with open('twitter_relations.json', 'w') as exported_data:
+            with open(self.export_name, 'w') as exported_data:
                 json.dump(self.explored_nodes, exported_data)
         finally:
             self.explored_lock.release()
