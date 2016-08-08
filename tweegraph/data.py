@@ -1,6 +1,7 @@
 # helper functions to manipulate the data
 
 import pandas as pd
+from collections import defaultdict
 
 
 def get_unique_nodes_from_file(file_name):
@@ -101,3 +102,34 @@ def get_mutual_following_edges(relations, edges=None):
             bi_edges.append((follower, node))
 
     return bi_edges
+
+
+def get_mutual_following_dict(relations, edges=None):
+    """Produce a relations dict where every edge is bidirected. That means
+    taking an original relations dict and keeping only the nodes that have
+    been followed by their friends with the corresponding edges.
+
+    Parameters
+    ----------
+    relations : dictionary of dictionaries
+        A dictionary that contains a dictionary the key 'following' for each
+        key (id).
+
+    Returns
+    -------
+    mutual_dict : dictionary in the  form {node_id: {'following'=[id_1, ...]}}
+        dictionary that descibes only bidirectional edges
+    """
+    mu_dict = defaultdict(dict)
+
+    relations = {str(key): value for key, value in relations.items()}
+    for node_id in relations:
+        following = []
+        for friend in relations[node_id]['following']:
+            if str(friend) in relations: # and \
+                if node_id in relations[str(friend)]['following']:
+                    following.append(friend)
+        if following:
+            mu_dict[node_id] = {'following': following}
+
+    return mu_dict
