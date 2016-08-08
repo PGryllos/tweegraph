@@ -70,7 +70,7 @@ def get_tweets(db_name, user_id):
     return tweets
 
 
-def create_user_topic_affiliation_dict(db_name):
+def get_user_topic_affiliation_dict(db_name):
     """returns the user-topic affilication dictionary proposed by Yuan et al.
     in their study 'Exploiting Sentiment Homophily for Link Prediction'
 
@@ -83,23 +83,46 @@ def create_user_topic_affiliation_dict(db_name):
 
     Returns
     -------
-    user_topic_dict : dict in the for dict{user_id: {topic: sentiment_score}}
+    user_topic : dict in the for dict{user_id: {topic: sentiment_score}}
     """
-    user_topic_dict = defaultdict(dict)
+    user_topic = defaultdict(dict)
 
     db_client = MongoClient()
 
     for user in db_client[db_name].collection_names():
-        for timeline in db_client[db_name][user].find():
-            for status in timeline['content']:
-                for hashtag in status['entities']['hashtags']:
-                    user_topic_dict[user][hashtag['text']] = [0, 1, 0]
+        timeline = db_client[db_name][user].find().next()
+        for status in timeline['content']:
+            tweet_score = get_tweet_score(status['text'])
+            for topic in status['entities']['hashtags']:
+                topic = topic['text'].lower()
+                if not topic in user_topic[user]:
+                    user_topic[user][topic] = [tweet_score, 1]
+                else:
+                    previous_score = user_topic[user][topic][0]
 
-    return user_topic_dict
+                    new_score = tuple(sum(i) for i in zip(tweet_score,
+                                                          previous_score))
+                    user_topic[user][topic][0] = new_score
+                    user_topic[user][topic][1] += 1
+    # average scores
+    for user in user_topic:
+        for topic, scores in user_topic[user].iteritems():
+            freq = scores[1]
+            if freq > 1:
+                #print scores
+                pos = scores[0][0] / freq
+                neg = scores[0][1] / freq
+
+                user_topic[user][topic] = (pos, neg, round(1 - (pos + neg), 7))
+            else:
+                user_topic[user][topic] = scores[0]
 
 
-def create_topic_user_dict(db_name):
-    """returns the a topic to list of users dictionary
+    return user_topic
+
+
+def get_topic_user_dict(db_name):
+    """returns a topic to list of users dictionary
 
     Parameters
     ----------
@@ -117,12 +140,12 @@ def create_topic_user_dict(db_name):
     db_client = MongoClient()
 
     for user in db_client[db_name].collection_names():
-        for timeline in db_client[db_name][user].find():
-            hashtags = []
-            for status in timeline['content']:
-                for hashtag in status['entities']['hashtags']:
-                    hashtags.append(hashtag['text'])
-            for hashtag in set(hashtags):
-                topic_user_dict[hashtag].append(user)
+        timeline = db_client[db_name][user].find().next()
+        hashtags = []
+        for status in timeline['content']:
+            for hashtag in status['entities']['hashtags']:
+                hashtags.append(hashtag['text'])
+        for hashtag in set(hashtags):
+            topic_user_dict[hashtag].append(user)
 
     return topic_user_dict
