@@ -1,6 +1,10 @@
 # MongoDB queries
 from collections import defaultdict
 from pymongo import MongoClient
+from pymongo.errors import DocumentTooLarge as DocumentTooLargeError
+from pymongo.errors import WriterError
+
+from tweegraph.sentiment_analyzer import get_tweet_score
 
 
 def store_timeline(db_name, user_id, timeline):
@@ -15,8 +19,15 @@ def store_timeline(db_name, user_id, timeline):
     timeline = [status._json for status in timeline]
 
     if timeline:
-        db_client[db_name][user_id].insert_one({'_id': user_id,
-                                                'content': timeline})
+        while True:
+            try:
+                db_client[db_name][str(user_id)].insert_one(
+                        {'_id': user_id, 'content': timeline})
+                break
+            except DocumentTooLargeError as e:
+                timeline = timeline[:-1]
+            except WriteError as e:
+                timeline = timeline[:-1]
 
 
 def get_number_of_collections(db_name):
