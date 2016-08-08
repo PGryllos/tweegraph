@@ -46,7 +46,7 @@ def request_handler(cursor, logger):
                     sleep(0.5)
                     continue
                 else:
-                    logger.warning(e)
+                    logger.warning(str(e) + ' ' + LOG_MSG)
                     yield None
 
 
