@@ -2,9 +2,9 @@
 from collections import defaultdict
 from pymongo import MongoClient
 from pymongo.errors import DocumentTooLarge as DocumentTooLargeError
-from pymongo.errors import WriterError
+from pymongo.errors import WriteError
 
-from tweegraph.sentiment_analyzer import get_tweet_score
+from tweegraph.sentiment_analyzer import get_tweet_score, determine_polarity
 
 
 def store_timeline(db_name, user_id, timeline):
@@ -93,32 +93,41 @@ def get_user_topic_affiliation_dict(db_name):
         timeline = db_client[db_name][user].find().next()
         for status in timeline['content']:
             tweet_score = get_tweet_score(status['text'])
+            polarity = determine_polarity(tweet_score)
             for topic in status['entities']['hashtags']:
                 topic = topic['text'].lower()
                 if not topic in user_topic[user]:
-                    user_topic[user][topic] = [tweet_score, 1]
+                    # tweet score accompanied by the pos neg and obj count
+                    user_topic[user][topic] = [tweet_score, 0, 0, 0]
                 else:
                     previous_score = user_topic[user][topic][0]
 
                     new_score = tuple(sum(i) for i in zip(tweet_score,
                                                           previous_score))
                     user_topic[user][topic][0] = new_score
+                if polarity == 1:
                     user_topic[user][topic][1] += 1
+                elif polarity == -1:
+                    user_topic[user][topic][2] += 1
+                else:
+                    user_topic[user][topic][3] += 1
     # average scores
     for user in user_topic:
         for topic, scores in user_topic[user].iteritems():
-            freq = scores[1]
+            freq = sum(scores[1:])
             if freq > 1:
                 #print scores
                 pos = scores[0][0] / freq
                 neg = scores[0][1] / freq
 
-                user_topic[user][topic] = (pos, neg, round(1 - (pos + neg), 7))
+                user_topic[user][topic] = (pos, neg, round(1 - (pos + neg), 7),
+                                           scores[1], scores[2], scores[3])
             else:
-                user_topic[user][topic] = scores[0]
+                user_topic[user][topic] = (scores[0][0], scores[0][1],
+                                           scores[0][2], scores[1], scores[2],
+                                           scores[3])
 
-
-    return user_topic
+    return dict(user_topic)
 
 
 def get_topic_user_dict(db_name):
@@ -146,6 +155,6 @@ def get_topic_user_dict(db_name):
             for hashtag in status['entities']['hashtags']:
                 hashtags.append(hashtag['text'])
         for hashtag in set(hashtags):
-            topic_user_dict[hashtag].append(user)
+            topic_user_dict[hashtag.lower()].append(user)
 
-    return topic_user_dict
+    return dict(topic_user_dict)

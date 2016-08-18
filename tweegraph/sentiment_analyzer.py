@@ -13,6 +13,13 @@ import pandas as pd
 from textblob.sentiments import PatternAnalyzer
 
 
+def determine_polarity((pos_score, neg_score, obj_score)):
+    """determine the polarity of a sentiment score. returns 1 to indicate
+    positiveness, -1 for negativeness and 0 for objectiveness
+    """
+    return 1 if pos_score > neg_score else -1 if pos_score < neg_score else 0
+
+
 def _get_emoticons_dict():
     """Returns a dictionary that maps unicode codes of emojis to sentiment
     score of the form (positivity, negativy, objectivity)
